@@ -1,0 +1,18 @@
+version: '1.0'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: strukit-postgres-${NODE_ENV}
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+
+volumes:
+  postgres_data:
