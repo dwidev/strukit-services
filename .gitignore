@@ -1,39 +1,37 @@
-# compiled output
-/dist
-/node_modules
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# Logs
-logs
+# Output of `go build`
+*.test
+*.out
+
+# Dependency directories (vendor/)
+vendor/
+
+# Go workspace file (GoLand / JetBrains IDEs)
+*.idea/
+
+# VS Code settings
+.vscode/
+
+# Logs and temporary files
 *.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
+*.tmp
 
-# OS
+# OS-specific files
 .DS_Store
+Thumbs.db
 
-# Tests
-/coverage
-/.nyc_output
+# Testing cache
+*.coverprofile
+*.testresult
 
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+# Go module file cache (not normally committed)
+go.sum
 
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-
-.env*
-!.env.example
+# Binary output
+bin/
