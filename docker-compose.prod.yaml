@@ -1,10 +1,10 @@
-version: '1.0'
+version: "1.0"
 services:
   postgres:
     image: postgres:15-alpine
     container_name: strukit-postgres-service
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - ENV=${ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -17,10 +17,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: ${NODE_ENV}
+      target: ${ENV}
     container_name: strukit-service
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - ENV=${ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

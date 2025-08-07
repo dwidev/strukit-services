@@ -35,3 +35,7 @@ go.sum
 
 # Binary output
 bin/
+
+.env
+.env.*
+!.env.example
