@@ -9,6 +9,11 @@ import (
 
 var Env *schema
 
+var (
+	Prod = "production"
+	Dev  = "dev"
+)
+
 type schema struct {
 	PORT              string
 	RuntimeEnv        string
@@ -35,7 +40,7 @@ func (c *appConfig) load() {
 	var file string
 
 	switch c.Env {
-	case "production":
+	case "dev":
 		file = ".env.dev"
 	default:
 		file = ".env"
