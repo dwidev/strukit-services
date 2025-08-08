@@ -39,3 +39,5 @@ bin/
 .env
 .env.*
 !.env.example
+
+tmp/*

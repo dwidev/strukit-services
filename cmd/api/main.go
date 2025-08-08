@@ -7,10 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
-	config.Run(".env.dev")
-	router := gin.Default()
+func init() {
+	fmt.Println("call init function...")
 
+	config.Run()
+
+	fmt.Println("call init function done")
+}
+
+func main() {
+	router := gin.Default()
 	router.Use()
 
 	router.GET("/health", func(ctx *gin.Context) {

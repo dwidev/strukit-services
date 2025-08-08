@@ -28,7 +28,7 @@ reset-up:
 dev:
 	@echo "$(GREEN)Starting development environment... $(NC)"
 	@make start
-	@npm run start:dev
+	@export GO_ENV="dev" && air
 
 compose-config:
 	docker-compose --file docker-compose.dev.yaml --env-file .env.dev config
