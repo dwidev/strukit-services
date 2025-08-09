@@ -4,6 +4,7 @@ import (
 	"fmt"
 	router "strukit-services/internal/app"
 	"strukit-services/internal/config"
+	"strukit-services/internal/db"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +22,9 @@ func init() {
 }
 
 func main() {
+	db := db.Open()
+	defer db.Close()
+
 	routerEngine := gin.Default()
 	router.Run(routerEngine)
 

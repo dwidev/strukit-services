@@ -15,10 +15,14 @@ var (
 )
 
 type schema struct {
-	PORT              string
-	RuntimeEnv        string
-	POSTGRES_USER     string
+	RuntimeEnv string
+	PORT       string
+
+	DB_HOST string
+	DB_PORT string
+
 	POSTGRES_DB       string
+	POSTGRES_USER     string
 	POSTGRES_PASSWORD string
 }
 
@@ -52,10 +56,14 @@ func (c *appConfig) load() {
 	}
 
 	Env = &schema{
-		PORT:              *c.lookup("APP_PORTS"),
-		RuntimeEnv:        c.Env,
-		POSTGRES_USER:     *c.lookup("POSTGRES_USER"),
+		PORT:       *c.lookup("APP_PORTS"),
+		RuntimeEnv: c.Env,
+
+		DB_HOST: *c.lookup("DB_HOST"),
+		DB_PORT: *c.lookup("DB_PORT"),
+
 		POSTGRES_DB:       *c.lookup("POSTGRES_DB"),
+		POSTGRES_USER:     *c.lookup("POSTGRES_USER"),
 		POSTGRES_PASSWORD: *c.lookup("POSTGRES_PASSWORD"),
 	}
 }
