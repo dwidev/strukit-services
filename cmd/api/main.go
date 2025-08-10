@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	router "strukit-services/internal/app"
-	"strukit-services/internal/config"
 	"strukit-services/internal/db"
+	"strukit-services/pkg/config"
 
 	"github.com/gin-gonic/gin"
 )

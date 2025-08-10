@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"strukit-services/internal/config"
+	"strukit-services/pkg/config"
 )
 
 func DsnPg() string {

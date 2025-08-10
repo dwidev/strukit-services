@@ -1,6 +1,10 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"strukit-services/internal/app/delivery/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func Run(router *gin.Engine) {
 	r := &appRouter{router: router}
@@ -11,7 +15,8 @@ type appRouter struct {
 	router *gin.Engine
 	V1     *gin.RouterGroup
 
-	// controller
+	// handler
+	authHandler http.AuthHandler
 }
 
 func (a *appRouter) BuidlV1() *appRouter {
@@ -28,12 +33,7 @@ func (a *appRouter) Build() {
 
 	auth := a.V1.Group("/auth")
 	{
-
-		auth.POST("/login", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "Login dummy",
-			})
-		})
+		auth.POST("/login-with-email", a.authHandler.LoginWithEmail)
 		auth.POST("/logout", func(ctx *gin.Context) {
 			ctx.JSON(200, gin.H{
 				"message": "Login dummy",

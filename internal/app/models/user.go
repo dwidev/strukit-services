@@ -2,15 +2,20 @@ package models
 
 import (
 	"strukit-services/internal/models"
+	"time"
 )
 
 type User struct {
 	models.Base
-	FullName    string  `gorm:"type:varchar(255);column:full_name" json:"fullName"`
-	Email       *string `gorm:"type:varchar(255);unique" json:"email"`
-	PhoneNumber *string `gorm:"type:varchar(50);column:phone_number" json:"phoneNUmber"`
-	AvatarUrl   *string `gorm:"type:text;column:avatar_url" json:"avatarUrl"`
-	IsActive    bool    `gorm:"type:boolean;default:true;column:is_active;" json:"isActive"`
+	Email        *string    `json:"email"`
+	PhoneNumber  *string    `json:"phoneNumber"`
+	FullName     string     `json:"fullName"`
+	PasswordHas  string     `json:"passwordHas"`
+	AvatarUrl    *string    `json:"avatarUrl"`
+	IsActive     bool       `json:"isActive"`
+	IsVerified   bool       `json:"IsVerified"`
+	IsVerifiedAt *time.Time `json:"isVerifiedAt"`
+	LastLoginAt  *time.Time `json:"lastLoginAt"`
 }
 
 func (User) TableName() string {
