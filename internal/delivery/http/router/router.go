@@ -3,12 +3,13 @@ package router
 import (
 	"strukit-services/internal/delivery/http/middleware"
 	"strukit-services/pkg/logger"
+	"strukit-services/pkg/token"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Run(router *gin.Engine, handler *RouterHandler) {
-	r := &appRouter{router: router, handler: handler}
+func Run(router *gin.Engine, token *token.Token, handler *RouterHandler) {
+	r := &appRouter{router: router, Token: token, handler: handler}
 	r.Build()
 
 }
@@ -16,6 +17,7 @@ func Run(router *gin.Engine, handler *RouterHandler) {
 type appRouter struct {
 	router *gin.Engine
 	V1     *gin.RouterGroup
+	Token  *token.Token
 
 	handler *RouterHandler
 }
@@ -51,8 +53,7 @@ func (a *appRouter) PublicRoute() {
 }
 
 func (a *appRouter) AuthRoute() {
-	a.router.Use(middleware.Authorization())
-
+	a.V1.Use(middleware.Authorization(a.Token))
 	user := a.V1.Group("/user")
 	{
 

@@ -37,7 +37,7 @@ func Bootstrap(cfg *BootstrapConfig) func() {
 	routerHandler := router.NewHandler(authHandler)
 
 	// run router
-	router.Run(cfg.RouterEngine, routerHandler)
+	router.Run(cfg.RouterEngine, token, routerHandler)
 
 	close := func() {
 		db.Close()

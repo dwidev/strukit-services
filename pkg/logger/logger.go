@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	appCtx "strukit-services/pkg/context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -40,7 +41,7 @@ func (l *Logger) HttpRequestMiddlerware() gin.HandlerFunc {
 		requestId := uuid.New().String()
 		c.Header("X-Request-ID", requestId)
 
-		ctx := context.WithValue(c.Request.Context(), RequestIDKey, requestId)
+		ctx := context.WithValue(c.Request.Context(), appCtx.RequestIDKey, requestId)
 		c.Request = c.Request.WithContext(ctx)
 
 		data := l.LogData(c, requestId)
