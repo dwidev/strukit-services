@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	router "strukit-services/internal/app"
+	"strukit-services/internal/app/delivery/http/router"
 	"strukit-services/internal/db"
 	"strukit-services/pkg/config"
 	"strukit-services/pkg/logger"

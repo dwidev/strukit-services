@@ -2,6 +2,7 @@ package router
 
 import (
 	"strukit-services/internal/app/delivery/http"
+	"strukit-services/internal/app/delivery/http/middleware"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -27,12 +28,12 @@ func (a *appRouter) BuidlV1() *appRouter {
 		panic("please run logger.New() at main.go")
 	}
 
-	a.router.Use(logger.Log.HttpRequestMiddlerware())
+	a.router.Use(middleware.Logging())
 	a.V1 = a.router.Group("/api/v1")
 	return a
 }
 
-func (a *appRouter) Build() {
+func (a *appRouter) PublicRoute() {
 	a.router.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
 			"message": "this server is healthty",
@@ -48,6 +49,10 @@ func (a *appRouter) Build() {
 			})
 		})
 	}
+}
+
+func (a *appRouter) AuthRoute() {
+	a.router.Use(middleware.Authorization())
 
 	user := a.V1.Group("/user")
 	{
@@ -113,4 +118,9 @@ func (a *appRouter) Build() {
 			})
 		})
 	}
+}
+
+func (a *appRouter) Build() {
+	a.PublicRoute()
+	a.AuthRoute()
 }
