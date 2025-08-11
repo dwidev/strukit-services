@@ -1,12 +1,11 @@
 package models
 
 import (
-	"strukit-services/internal/models"
 	"time"
 )
 
-type User struct {
-	models.Base
+type UserModel struct {
+	BaseModel
 	Email        *string    `json:"email"`
 	PhoneNumber  *string    `json:"phoneNumber"`
 	FullName     string     `json:"fullName"`
@@ -18,6 +17,6 @@ type User struct {
 	LastLoginAt  *time.Time `json:"lastLoginAt"`
 }
 
-func (User) TableName() string {
+func (UserModel) TableName() string {
 	return "users"
 }

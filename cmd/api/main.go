@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"strukit-services/internal/app/delivery/http/router"
-	"strukit-services/internal/db"
+	"strukit-services/internal/delivery/http/router"
 	"strukit-services/pkg/config"
+	"strukit-services/pkg/db"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"

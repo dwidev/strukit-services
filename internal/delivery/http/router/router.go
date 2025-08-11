@@ -1,8 +1,8 @@
 package router
 
 import (
-	"strukit-services/internal/app/delivery/http"
-	"strukit-services/internal/app/delivery/http/middleware"
+	"strukit-services/internal/delivery/http"
+	"strukit-services/internal/delivery/http/middleware"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"

@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type BaseController struct {
+type BaseHandler struct {
 	*gorm.DB
 	*logger.Logger
 }

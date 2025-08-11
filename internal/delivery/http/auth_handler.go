@@ -2,14 +2,14 @@ package http
 
 import (
 	"net/http"
-	"strukit-services/internal/app/dto"
+	"strukit-services/internal/dto"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	BaseController
+	BaseHandler
 }
 
 func (a AuthHandler) LoginWithEmail(c *gin.Context) {
