@@ -23,7 +23,7 @@ type Token struct {
 	SecretKeys []string
 }
 
-func (t *Token) claims(user *models.UserModel, expired time.Duration) *TokenClaims {
+func (t *Token) claims(user *models.User, expired time.Duration) *TokenClaims {
 	return &TokenClaims{
 		UserID: user.ID.String(),
 		RegisteredClaims: &jwt.RegisteredClaims{
@@ -33,7 +33,7 @@ func (t *Token) claims(user *models.UserModel, expired time.Duration) *TokenClai
 	}
 }
 
-func (t *Token) Generate(user *models.UserModel) (*TokenResponse, error) {
+func (t *Token) Generate(user *models.User) (*TokenResponse, error) {
 	accessClaims := t.claims(user, accessExpTime)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	accessToken, err := token.SignedString([]byte(t.SecretKeys[0]))

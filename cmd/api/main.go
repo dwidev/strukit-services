@@ -27,6 +27,9 @@ func main() {
 	cfg := &app.BootstrapConfig{
 		RouterEngine: routerEngine,
 	}
-	app.Bootstrap(cfg)
+
+	close := app.Bootstrap(cfg)
+	defer close()
+
 	routerEngine.Run(fmt.Sprintf(":%s", config.Env.PORT))
 }
