@@ -1,12 +1,8 @@
 package http
 
-import (
-	"strukit-services/pkg/logger"
-
-	"gorm.io/gorm"
-)
+func NewBase() *BaseHandler {
+	return &BaseHandler{}
+}
 
 type BaseHandler struct {
-	*gorm.DB
-	*logger.Logger
 }

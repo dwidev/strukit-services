@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strukit-services/internal/delivery/http/router"
+	"strukit-services/internal/app"
 	"strukit-services/pkg/config"
-	"strukit-services/pkg/db"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -24,11 +23,10 @@ func init() {
 }
 
 func main() {
-	db := db.Open()
-	defer db.Close()
-
 	routerEngine := gin.Default()
-	router.Run(routerEngine)
-
+	cfg := &app.BootstrapConfig{
+		RouterEngine: routerEngine,
+	}
+	app.Bootstrap(cfg)
 	routerEngine.Run(fmt.Sprintf(":%s", config.Env.PORT))
 }

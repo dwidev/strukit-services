@@ -3,13 +3,21 @@ package http
 import (
 	"net/http"
 	"strukit-services/internal/dto"
+	"strukit-services/internal/services"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
+func NewAuth(authService *services.AuthService) *AuthHandler {
+	return &AuthHandler{
+		AuthService: authService,
+	}
+}
+
 type AuthHandler struct {
 	BaseHandler
+	*services.AuthService
 }
 
 func (a AuthHandler) LoginWithEmail(c *gin.Context) {
@@ -21,8 +29,11 @@ func (a AuthHandler) LoginWithEmail(c *gin.Context) {
 		return
 	}
 
-	// hit the services login with email
-	c.JSON(200, gin.H{
-		"message": "Login",
-	})
+	response, err := a.AuthService.LoginWithEmail(body.Email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, response)
 }

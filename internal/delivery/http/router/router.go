@@ -1,17 +1,15 @@
 package router
 
 import (
-	"strukit-services/internal/delivery/http"
 	"strukit-services/internal/delivery/http/middleware"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Run(router *gin.Engine) {
-
-	r := &appRouter{router: router}
-	r.BuidlV1().Build()
+func Run(router *gin.Engine, handler *RouterHandler) {
+	r := &appRouter{router: router, handler: handler}
+	r.Build()
 
 }
 
@@ -19,18 +17,19 @@ type appRouter struct {
 	router *gin.Engine
 	V1     *gin.RouterGroup
 
-	// handler
-	authHandler http.AuthHandler
+	handler *RouterHandler
 }
 
-func (a *appRouter) BuidlV1() *appRouter {
+func (a *appRouter) Build() {
 	if logger.Log == nil {
 		panic("please run logger.New() at main.go")
 	}
 
 	a.router.Use(middleware.Logging())
 	a.V1 = a.router.Group("/api/v1")
-	return a
+
+	a.PublicRoute()
+	a.AuthRoute()
 }
 
 func (a *appRouter) PublicRoute() {
@@ -42,7 +41,7 @@ func (a *appRouter) PublicRoute() {
 
 	auth := a.V1.Group("/auth")
 	{
-		auth.POST("/login-with-email", a.authHandler.LoginWithEmail)
+		auth.POST("/login-with-email", a.handler.auth.LoginWithEmail)
 		auth.POST("/logout", func(ctx *gin.Context) {
 			ctx.JSON(200, gin.H{
 				"message": "Login dummy",
@@ -118,9 +117,4 @@ func (a *appRouter) AuthRoute() {
 			})
 		})
 	}
-}
-
-func (a *appRouter) Build() {
-	a.PublicRoute()
-	a.AuthRoute()
 }

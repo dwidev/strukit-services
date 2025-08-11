@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strukit-services/pkg/logger"
 
 	"github.com/joho/godotenv"
 )
@@ -24,6 +25,9 @@ type schema struct {
 	POSTGRES_DB       string
 	POSTGRES_USER     string
 	POSTGRES_PASSWORD string
+
+	JWT_ACCESS_SECRET  string
+	JWT_REFRESH_SECRET string
 }
 
 func Run() *appConfig {
@@ -65,6 +69,9 @@ func (c *appConfig) load() {
 		POSTGRES_DB:       *c.lookup("POSTGRES_DB"),
 		POSTGRES_USER:     *c.lookup("POSTGRES_USER"),
 		POSTGRES_PASSWORD: *c.lookup("POSTGRES_PASSWORD"),
+
+		JWT_ACCESS_SECRET:  *c.lookup("JWT_ACCESS_SECRET"),
+		JWT_REFRESH_SECRET: *c.lookup("JWT_REFRESH_SECRET"),
 	}
 }
 
@@ -73,6 +80,6 @@ func (c *appConfig) lookup(key string) *string {
 		return &value
 	}
 
-	log.Fatalf("env value not available with key %s", key)
+	logger.Log.Fatalf("env value not available with key %s", key)
 	return nil
 }
