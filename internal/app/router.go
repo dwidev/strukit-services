@@ -2,13 +2,16 @@ package router
 
 import (
 	"strukit-services/internal/app/delivery/http"
+	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Run(router *gin.Engine) {
+
 	r := &appRouter{router: router}
 	r.BuidlV1().Build()
+
 }
 
 type appRouter struct {
@@ -20,6 +23,11 @@ type appRouter struct {
 }
 
 func (a *appRouter) BuidlV1() *appRouter {
+	if logger.Log == nil {
+		panic("please run logger.New() at main.go")
+	}
+
+	a.router.Use(logger.Log.HttpRequestMiddlerware())
 	a.V1 = a.router.Group("/api/v1")
 	return a
 }

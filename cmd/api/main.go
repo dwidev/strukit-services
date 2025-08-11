@@ -5,6 +5,7 @@ import (
 	router "strukit-services/internal/app"
 	"strukit-services/internal/db"
 	"strukit-services/pkg/config"
+	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +14,7 @@ func init() {
 	fmt.Println("call init function...")
 
 	config.Run()
+	logger.New()
 
 	if config.Env.RuntimeEnv == config.Prod {
 		gin.SetMode(gin.ReleaseMode)
