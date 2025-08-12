@@ -31,5 +31,7 @@ func main() {
 	close := app.Bootstrap(cfg)
 	defer close()
 
-	routerEngine.Run(fmt.Sprintf(":%s", config.Env.PORT))
+	if err := routerEngine.Run(fmt.Sprintf(":%s", config.Env.PORT)); err != nil {
+		logger.Log.Fatalf("Error when starting server : %s", err)
+	}
 }
