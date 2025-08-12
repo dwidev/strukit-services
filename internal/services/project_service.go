@@ -27,8 +27,8 @@ func (a *ProjectService) All(ctx context.Context) (results []*models.Project, er
 	return
 }
 
-func (a *ProjectService) SoftDelete(projectID string) (err error) {
-	if err = a.ProjectRepository.SoftDelete(projectID); err != nil {
+func (a *ProjectService) SoftDelete(ctx context.Context, projectID string) (err error) {
+	if err = a.ProjectRepository.SoftDelete(ctx, projectID); err != nil {
 		return
 	}
 

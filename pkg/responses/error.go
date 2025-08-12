@@ -16,9 +16,8 @@ func BodyErr(Message any) *AppError {
 	return &AppError{http.StatusBadRequest, Message}
 }
 
-func ServerError(ctx *gin.Context) {
-	code := http.StatusInternalServerError
-	ctx.JSON(code, MessageResponse{StatusCode: code, Message: "There was an error on the server, please try again later."})
+func Forbidden() *AppError {
+	return &AppError{http.StatusForbidden, "Access denied: You don't own this project"}
 }
 
 type AppError struct {

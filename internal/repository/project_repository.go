@@ -4,6 +4,7 @@ import (
 	"context"
 	"strukit-services/internal/models"
 	appContext "strukit-services/pkg/context"
+	"strukit-services/pkg/responses"
 
 	"github.com/google/uuid"
 )
@@ -28,9 +29,18 @@ func (p *ProjectRepository) All(ctx context.Context) (results []*models.Project,
 	return projects, nil
 }
 
-func (p *ProjectRepository) SoftDelete(projectID string) (err error) {
-	if err = p.db.Model(&models.Project{}).Where("id = ?", uuid.MustParse(projectID)).Update("is_soft_delete", true).Error; err != nil {
-		return
+func (p *ProjectRepository) SoftDelete(ctx context.Context, projectID string) (err error) {
+	userId := ctx.Value(appContext.UserIDKey).(string)
+	result := p.db.Model(&models.Project{}).
+		Where("id = ? AND user_id = ?", uuid.MustParse(projectID), uuid.MustParse(userId)).
+		Update("is_soft_delete", true)
+
+	if result.Error != nil {
+		return err
+	}
+
+	if result.RowsAffected == 0 {
+		return responses.Forbidden()
 	}
 
 	return nil

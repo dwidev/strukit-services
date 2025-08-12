@@ -28,7 +28,7 @@ func (a *ProjectHandler) All(c *gin.Context) {
 
 	results, err := a.ProjectService.All(ctx)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 
@@ -40,6 +40,7 @@ func (a *ProjectHandler) All(c *gin.Context) {
 
 func (a *ProjectHandler) SoftDelete(c *gin.Context) {
 	projectID := c.Param("id")
+	ctx := c.Request.Context()
 
 	if projectID == "" {
 		err := responses.BodyErr("project id cannot be empty")
@@ -47,9 +48,9 @@ func (a *ProjectHandler) SoftDelete(c *gin.Context) {
 		return
 	}
 
-	err := a.ProjectService.SoftDelete(projectID)
+	err := a.ProjectService.SoftDelete(ctx, projectID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 
