@@ -97,11 +97,8 @@ func (a *appRouter) AuthRoute() {
 
 	project := a.V1.Group("/project")
 	{
-		project.GET("/all", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "receipt list",
-			})
-		})
+		project.DELETE("/:id", a.handler.project.SoftDelete)
+		project.GET("/all", a.handler.project.SoftDelete)
 		project.POST("/create", a.handler.project.CreateNewProject)
 	}
 

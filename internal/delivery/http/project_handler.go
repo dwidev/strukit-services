@@ -23,7 +23,28 @@ type ProjectHandler struct {
 	*services.ProjectService
 }
 
-func (a ProjectHandler) CreateNewProject(c *gin.Context) {
+func (a *ProjectHandler) SoftDelete(c *gin.Context) {
+	projectID := c.Param("id")
+
+	if projectID == "" {
+		err := responses.BodyErr("project id cannot be empty")
+		c.Error(err)
+		return
+	}
+
+	err := a.ProjectService.SoftDelete(projectID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"projectId": projectID,
+		"message":   "Project deleted successfully",
+	})
+}
+
+func (a *ProjectHandler) CreateNewProject(c *gin.Context) {
 	ctx := c.Request.Context()
 	var body dto.CreateProjectDto
 
@@ -40,7 +61,7 @@ func (a ProjectHandler) CreateNewProject(c *gin.Context) {
 
 	response, err := a.ProjectService.CreateNewProject(ctx, &body)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 

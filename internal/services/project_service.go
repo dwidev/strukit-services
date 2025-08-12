@@ -18,6 +18,14 @@ type ProjectService struct {
 	*repository.ProjectRepository
 }
 
+func (a *ProjectService) SoftDelete(projectID string) (err error) {
+	if err = a.ProjectRepository.SoftDelete(projectID); err != nil {
+		return
+	}
+
+	return nil
+}
+
 func (a *ProjectService) CreateNewProject(ctx context.Context, dto *dto.CreateProjectDto) (token *models.Project, err error) {
 	userId := ctx.Value(appContext.UserIDKey).(string)
 	newProject := dto.Model(uuid.MustParse(userId))

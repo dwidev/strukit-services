@@ -16,6 +16,11 @@ func BodyErr(Message any) *AppError {
 	return &AppError{http.StatusBadRequest, Message}
 }
 
+func ServerError(ctx *gin.Context) {
+	code := http.StatusInternalServerError
+	ctx.JSON(code, MessageResponse{StatusCode: code, Message: "There was an error on the server, please try again later."})
+}
+
 type AppError struct {
 	Code    int `json:"code"`
 	Message any `json:"message"`
@@ -36,9 +41,4 @@ func (e AppError) Error() string {
 
 func (e *AppError) JSON(ctx *gin.Context) {
 	ctx.JSON(e.Code, MessageResponse{StatusCode: e.Code, Message: e.Message})
-}
-
-func ServerError(ctx *gin.Context) {
-	code := http.StatusInternalServerError
-	ctx.JSON(code, MessageResponse{StatusCode: code, Message: "There was an error on the server, please try again later."})
 }
