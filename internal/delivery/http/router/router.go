@@ -28,6 +28,7 @@ func (a *appRouter) Build() {
 	}
 
 	a.router.Use(middleware.Logging())
+	a.router.Use(middleware.CatchError())
 	a.V1 = a.router.Group("/api/v1")
 
 	a.PublicRoute()
@@ -96,17 +97,12 @@ func (a *appRouter) AuthRoute() {
 
 	project := a.V1.Group("/project")
 	{
-
-		project.GET("/create", func(ctx *gin.Context) {
+		project.GET("/all", func(ctx *gin.Context) {
 			ctx.JSON(200, gin.H{
 				"message": "receipt list",
 			})
 		})
-		project.GET("/delete", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "receipt list",
-			})
-		})
+		project.POST("/create", a.handler.project.CreateNewProject)
 	}
 
 	report := a.V1.Group("/report")

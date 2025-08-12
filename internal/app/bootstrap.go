@@ -8,6 +8,7 @@ import (
 	"strukit-services/pkg/config"
 	"strukit-services/pkg/db"
 	"strukit-services/pkg/token"
+	"strukit-services/pkg/validator"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,21 +21,26 @@ func Bootstrap(cfg *BootstrapConfig) func() {
 	db := db.Open()
 
 	token := token.Generator(config.Env.JWT_ACCESS_SECRET, config.Env.JWT_REFRESH_SECRET)
+	appValidator := validator.Run()
 
 	// BASE
 	baseRepo := repository.NewBase(db.Instance())
+	baseHandler := http.NewBase(appValidator)
 
 	// REPOSITORY
 	userRepo := repository.NewUser(baseRepo)
+	projectRepo := repository.NewProject(baseRepo)
 
 	// SERVICE
 	authService := services.NewAuth(token, userRepo)
+	projectService := services.NewProject(projectRepo)
 
 	// HANDLER
 	authHandler := http.NewAuth(authService)
+	projectHandler := http.NewProject(baseHandler, projectService)
 
 	// ROUTE HANDLER
-	routerHandler := router.NewHandler(authHandler)
+	routerHandler := router.NewHandler(authHandler, projectHandler)
 
 	// run router
 	router.Run(cfg.RouterEngine, token, routerHandler)

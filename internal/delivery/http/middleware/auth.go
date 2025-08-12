@@ -18,7 +18,7 @@ func Authorization(token *token.Token) gin.HandlerFunc {
 		accessTokenReq := ctx.GetHeader("access-token")
 
 		if len(accessTokenReq) <= 0 {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "access-token header required"})
 			ctx.Abort()
 			return
 		}
