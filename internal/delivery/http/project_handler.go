@@ -23,6 +23,21 @@ type ProjectHandler struct {
 	*services.ProjectService
 }
 
+func (a *ProjectHandler) All(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	results, err := a.ProjectService.All(ctx)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, responses.DataResponse{
+		StatusCode: 200,
+		Data:       results,
+	})
+}
+
 func (a *ProjectHandler) SoftDelete(c *gin.Context) {
 	projectID := c.Param("id")
 

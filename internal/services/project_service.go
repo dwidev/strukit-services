@@ -18,6 +18,15 @@ type ProjectService struct {
 	*repository.ProjectRepository
 }
 
+func (a *ProjectService) All(ctx context.Context) (results []*models.Project, err error) {
+	results, err = a.ProjectRepository.All(ctx)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (a *ProjectService) SoftDelete(projectID string) (err error) {
 	if err = a.ProjectRepository.SoftDelete(projectID); err != nil {
 		return

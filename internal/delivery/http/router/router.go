@@ -98,7 +98,7 @@ func (a *appRouter) AuthRoute() {
 	project := a.V1.Group("/project")
 	{
 		project.DELETE("/:id", a.handler.project.SoftDelete)
-		project.GET("/all", a.handler.project.SoftDelete)
+		project.GET("/all", a.handler.project.All)
 		project.POST("/create", a.handler.project.CreateNewProject)
 	}
 

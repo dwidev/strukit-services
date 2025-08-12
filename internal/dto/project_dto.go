@@ -8,11 +8,11 @@ import (
 )
 
 type CreateProjectDto struct {
-	Name        string `validate:"required" json:"Name"`
-	Description string `validate:"required" json:"description"`
-	TotalBudget int    `validate:"required" json:"totalBudget"`
-	StartDate   string `validate:"required" json:"startDate"`
-	EndDate     string `validate:"required" json:"endDate"`
+	Name        string  `validate:"required" json:"Name"`
+	Description string  `validate:"required" json:"description"`
+	TotalBudget float64 `validate:"required" json:"totalBudget"`
+	StartDate   string  `validate:"required" json:"startDate"`
+	EndDate     string  `validate:"required" json:"endDate"`
 }
 
 func (c *CreateProjectDto) Model(userID uuid.UUID) *models.Project {

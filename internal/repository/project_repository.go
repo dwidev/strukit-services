@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"strukit-services/internal/models"
+	appContext "strukit-services/pkg/context"
 
 	"github.com/google/uuid"
 )
@@ -14,6 +16,16 @@ func NewProject(base *BaseRepository) *ProjectRepository {
 
 type ProjectRepository struct {
 	*BaseRepository
+}
+
+func (p *ProjectRepository) All(ctx context.Context) (results []*models.Project, err error) {
+	userId := ctx.Value(appContext.UserIDKey).(string)
+	var projects []*models.Project
+	if err = p.db.Find(&projects, "user_id = ?", uuid.MustParse(userId)).Error; err != nil {
+		return nil, err
+	}
+
+	return projects, nil
 }
 
 func (p *ProjectRepository) SoftDelete(projectID string) (err error) {

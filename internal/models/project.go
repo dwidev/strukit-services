@@ -13,7 +13,7 @@ type Project struct {
 	UserID       uuid.UUID      `json:"userID"`
 	Name         string         `json:"name"`
 	Description  string         `json:"description"`
-	TotalBudget  int            `json:"totalBudget"`
+	TotalBudget  float64        `json:"totalBudget"`
 	StartDate    *time.Time     `json:"startDate"`
 	EndDate      *time.Time     `json:"endDate"`
 	Status       *ProjectStatus `json:"status"`

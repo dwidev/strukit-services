@@ -6,7 +6,6 @@ import (
 	"strings"
 	"strukit-services/pkg/config"
 	appContext "strukit-services/pkg/context"
-	"strukit-services/pkg/logger"
 	"strukit-services/pkg/token"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +37,6 @@ func Authorization(token *token.Token) gin.HandlerFunc {
 			return
 		}
 
-		logger.Log.Info("tokenParse.UserID", tokenParse.UserID)
 		newCtx := context.WithValue(reqCtx, appContext.UserIDKey, tokenParse.UserID)
 		ctx.Request = ctx.Request.WithContext(newCtx)
 		ctx.Next()
