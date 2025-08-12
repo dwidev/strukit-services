@@ -10,16 +10,12 @@ import (
 )
 
 func init() {
-	fmt.Println("call init function...")
-
 	config.Run()
 	logger.New()
 
 	if config.Env.RuntimeEnv == config.Prod {
 		gin.SetMode(gin.ReleaseMode)
 	}
-
-	fmt.Println("call init function done")
 }
 
 func main() {
