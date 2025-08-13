@@ -1,9 +1,12 @@
 package token
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+)
 
 type TokenClaims struct {
-	UserID string
+	UserID uuid.UUID
 	*jwt.RegisteredClaims
 }
 

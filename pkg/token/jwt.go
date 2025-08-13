@@ -25,7 +25,7 @@ type Token struct {
 
 func (t *Token) claims(user *models.User, expired time.Duration) *TokenClaims {
 	return &TokenClaims{
-		UserID: user.ID.String(),
+		UserID: user.ID,
 		RegisteredClaims: &jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expired)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -23,6 +23,28 @@ type ProjectHandler struct {
 	*services.ProjectService
 }
 
+func (a *ProjectHandler) GetProjectByID(c *gin.Context) {
+	projectID := c.Param("id")
+	ctx := c.Request.Context()
+
+	if projectID == "" {
+		err := responses.BodyErr("project id cannot be empty")
+		c.Error(err)
+		return
+	}
+
+	results, err := a.ProjectService.GetProjectByID(ctx, projectID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(200, responses.DataResponse{
+		StatusCode: 200,
+		Data:       results,
+	})
+}
+
 func (a *ProjectHandler) All(c *gin.Context) {
 	ctx := c.Request.Context()
 

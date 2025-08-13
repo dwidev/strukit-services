@@ -4,6 +4,7 @@ import (
 	"context"
 	"strukit-services/internal/models"
 	appContext "strukit-services/pkg/context"
+	"strukit-services/pkg/logger"
 	"strukit-services/pkg/responses"
 
 	"github.com/google/uuid"
@@ -19,10 +20,27 @@ type ProjectRepository struct {
 	*BaseRepository
 }
 
+func (p *ProjectRepository) GetProjectByID(ctx context.Context, projectId string) (result *models.Project, err error) {
+	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
+	var project *models.Project
+	res := p.db.First(&project, "id = ? AND user_id = ?", uuid.MustParse(projectId), userId)
+
+	if res.Error != nil {
+		logger.Log.Errorf("error when get project by id : %s", res.Error)
+		return nil, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return nil, responses.Forbidden()
+	}
+
+	return project, nil
+}
+
 func (p *ProjectRepository) All(ctx context.Context) (results []*models.Project, err error) {
-	userId := ctx.Value(appContext.UserIDKey).(string)
+	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	var projects []*models.Project
-	if err = p.db.Find(&projects, "user_id = ?", uuid.MustParse(userId)).Error; err != nil {
+	if err = p.db.Find(&projects, "user_id = ?", userId).Error; err != nil {
 		return nil, err
 	}
 
@@ -30,9 +48,9 @@ func (p *ProjectRepository) All(ctx context.Context) (results []*models.Project,
 }
 
 func (p *ProjectRepository) SoftDelete(ctx context.Context, projectID string) (err error) {
-	userId := ctx.Value(appContext.UserIDKey).(string)
+	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	result := p.db.Model(&models.Project{}).
-		Where("id = ? AND user_id = ?", uuid.MustParse(projectID), uuid.MustParse(userId)).
+		Where("id = ? AND user_id = ?", uuid.MustParse(projectID), userId).
 		Update("is_soft_delete", true)
 
 	if result.Error != nil {
