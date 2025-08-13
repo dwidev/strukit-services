@@ -3,8 +3,12 @@ package appContext
 type contextKey string
 
 const (
+	// client
 	RequestIDKey contextKey = "request_id"
-	UserIDKey    contextKey = "user_id"
-	SessionIDKey contextKey = "session_id"
 	IPAddressKey contextKey = "ip_address"
+	PathKey      contextKey = "path"
+	MethodKey    contextKey = "method"
+
+	// token usage
+	UserIDKey contextKey = "user_id"
 )

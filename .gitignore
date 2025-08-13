@@ -18,6 +18,9 @@ vendor/
 # VS Code settings
 .vscode/
 
+# logs folder
+.logs/
+
 # Logs and temporary files
 *.log
 *.tmp

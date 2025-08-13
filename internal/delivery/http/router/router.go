@@ -24,18 +24,18 @@ type appRouter struct {
 
 func (a *appRouter) Build() {
 	if logger.Log == nil {
-		panic("please run logger.New() at main.go")
+		panic("please run logger.New() at main.go, before build the router")
 	}
 
 	a.router.Use(middleware.LogRequest())
 	a.router.Use(middleware.CatchError())
 	a.V1 = a.router.Group("/api/v1")
 
-	a.PublicRoute()
-	a.AuthRoute()
+	a.publicRoutes()
+	a.protectedRoutes()
 }
 
-func (a *appRouter) PublicRoute() {
+func (a *appRouter) publicRoutes() {
 	a.router.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
 			"message": "this server is healthty",
@@ -53,7 +53,7 @@ func (a *appRouter) PublicRoute() {
 	}
 }
 
-func (a *appRouter) AuthRoute() {
+func (a *appRouter) protectedRoutes() {
 	a.V1.Use(middleware.Authorization(a.TokenManager))
 	user := a.V1.Group("/user")
 	{

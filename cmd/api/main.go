@@ -2,18 +2,22 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strukit-services/internal/app"
 	"strukit-services/pkg/config"
+	"strukit-services/pkg/constant"
 	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
-	config.Run()
-	logger.New()
+	env := os.Getenv("GO_ENV")
 
-	if config.Env.RuntimeEnv == config.Prod {
+	config.Run(env)
+	logger.New(&logger.Config{Env: constant.Environment(env)})
+
+	if config.Env.RuntimeEnv == constant.Prod {
 		gin.SetMode(gin.ReleaseMode)
 	}
 }
