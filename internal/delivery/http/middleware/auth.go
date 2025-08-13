@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Authorization(token *token.Token) gin.HandlerFunc {
+func Authorization(token *token.Manager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		reqCtx := ctx.Request.Context()
 		accessTokenReq := ctx.GetHeader("access-token")

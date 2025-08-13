@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewAuth(token *token.Token, userRepo *repository.UserRepository) *AuthService {
-	return &AuthService{Token: token, UserRepository: userRepo}
+func NewAuth(token *token.Manager, userRepo *repository.UserRepository) *AuthService {
+	return &AuthService{tokenManager: token, UserRepository: userRepo}
 }
 
 type AuthService struct {
-	*token.Token
+	tokenManager *token.Manager
 	*repository.UserRepository
 }
 
@@ -39,7 +39,7 @@ func (a *AuthService) LoginWithEmail(email string) (token *token.TokenResponse, 
 	}
 
 	user.LastLoginAt = &now
-	token, err = a.Token.Generate(user)
+	token, err = a.tokenManager.Generate(user)
 	if err != nil {
 		logger.Log.Errorf("error when generate user token, error :  %s", err)
 		return nil, err

@@ -8,22 +8,22 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func Generator(SecretKeys ...string) *Token {
+func NewManager(SecretKeys ...string) *Manager {
 	if len(SecretKeys) < 2 {
 		logger.Log.Fatalf("SecretKeys cannot parse")
 		return nil
 	}
 
-	return &Token{
+	return &Manager{
 		SecretKeys: SecretKeys,
 	}
 }
 
-type Token struct {
+type Manager struct {
 	SecretKeys []string
 }
 
-func (t *Token) claims(user *models.User, expired time.Duration) *TokenClaims {
+func (t *Manager) claims(user *models.User, expired time.Duration) *TokenClaims {
 	return &TokenClaims{
 		UserID: user.ID,
 		RegisteredClaims: &jwt.RegisteredClaims{
@@ -33,10 +33,10 @@ func (t *Token) claims(user *models.User, expired time.Duration) *TokenClaims {
 	}
 }
 
-func (t *Token) Generate(user *models.User) (*TokenResponse, error) {
+func (t *Manager) Generate(user *models.User) (*TokenResponse, error) {
 	accessClaims := t.claims(user, accessExpTime)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-	accessToken, err := token.SignedString([]byte(t.SecretKeys[0]))
+	Manager := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessToken, err := Manager.SignedString([]byte(t.SecretKeys[0]))
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (t *Token) Generate(user *models.User) (*TokenResponse, error) {
 	}, nil
 }
 
-func (t *Token) Parse(tokenRaw string, secretKey string) (*TokenClaims, error) {
+func (t *Manager) Parse(tokenRaw string, secretKey string) (*TokenClaims, error) {
 	claims := &TokenClaims{}
 	token, err := jwt.ParseWithClaims(tokenRaw, claims, func(t *jwt.Token) (any, error) {
 		return []byte(secretKey), nil

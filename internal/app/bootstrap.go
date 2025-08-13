@@ -20,7 +20,7 @@ type BootstrapConfig struct {
 func Bootstrap(cfg *BootstrapConfig) func() {
 	db := db.Open()
 
-	token := token.Generator(config.Env.JWT_ACCESS_SECRET, config.Env.JWT_REFRESH_SECRET)
+	token := token.NewManager(config.Env.JWT_ACCESS_SECRET, config.Env.JWT_REFRESH_SECRET)
 	appValidator := validator.Run()
 
 	// BASE

@@ -8,16 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Run(router *gin.Engine, token *token.Token, handler *RouterHandler) {
-	r := &appRouter{router: router, Token: token, handler: handler}
+func Run(router *gin.Engine, token *token.Manager, handler *RouterHandler) {
+	r := &appRouter{router: router, TokenManager: token, handler: handler}
 	r.Build()
 
 }
 
 type appRouter struct {
-	router *gin.Engine
-	V1     *gin.RouterGroup
-	Token  *token.Token
+	router       *gin.Engine
+	V1           *gin.RouterGroup
+	TokenManager *token.Manager
 
 	handler *RouterHandler
 }
@@ -54,7 +54,7 @@ func (a *appRouter) PublicRoute() {
 }
 
 func (a *appRouter) AuthRoute() {
-	a.V1.Use(middleware.Authorization(a.Token))
+	a.V1.Use(middleware.Authorization(a.TokenManager))
 	user := a.V1.Group("/user")
 	{
 
