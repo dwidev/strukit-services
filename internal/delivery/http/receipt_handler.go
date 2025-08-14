@@ -2,7 +2,9 @@ package http
 
 import (
 	"io"
+	"net/http"
 	"strukit-services/internal/services"
+	"strukit-services/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +20,30 @@ type ReceiptHandler struct {
 	*services.ReceiptService
 }
 
-func (r *ReceiptHandler) Scan(c *gin.Context) {
+func (r *ReceiptHandler) ScanOcr(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	type Request struct {
+		Raw string `json:"rawOcr" validate:"required"`
+	}
+
+	request := Request{}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		logger.Log.Errorf("error binding request %s", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	res, err := r.ReceiptService.ScanFromOCR(ctx, request.Raw)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(200, res)
+}
+
+func (r *ReceiptHandler) ScanUpload(c *gin.Context) {
 	ctx := c.Request.Context()
 	image, err := c.FormFile("image")
 

@@ -2,24 +2,27 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strukit-services/pkg/logger"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/genai"
 )
 
-func Run(ctx context.Context) (*Manager, error) {
+func Run() *Manager {
 	manager := new(Manager)
-	manager.Context = ctx
+	manager.Context = context.Background()
 
 	client, err := genai.NewClient(manager.Context, &genai.ClientConfig{
 		Backend: genai.BackendGeminiAPI,
 	})
 	if err != nil {
-		return nil, err
+		panic(fmt.Sprintf("panic when run llm Manager with error : %s", err))
 	}
 
 	manager.client = client
-	return manager, nil
+	return manager
 }
 
 type Manager struct {
@@ -27,138 +30,77 @@ type Manager struct {
 	client  *genai.Client
 }
 
-func (m *Manager) ScanReceiptWithImage(image []byte) (*string, error) {
+func (m *Manager) ScanReceiptWithImage(image []byte) (*ReceiptResponse, error) {
 	contents := []*genai.Content{
 		genai.NewContentFromBytes(image, "image/jpeg", genai.RoleUser),
 	}
 
-	ccfg := m.contentCfg()
-	res, err := m.client.Models.GenerateContent(m.Context, "gemini-2.5-flash", contents, ccfg)
+	res, err := m.generateContent(contents)
+	if err != nil {
+		return nil, err
+	}
 
+	result := res.Text()
+	receipt, err := m.parse(result)
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
+}
+
+func (m *Manager) ScanReceiptFromOCR(ocrRaw string) (*ReceiptResponse, error) {
+	ocrRaw = fmt.Sprintf(`### DATA OCR ###%s### END DATA OCR ###`, ocrRaw)
+	contents := []*genai.Content{
+		genai.NewContentFromText(ocrRaw, genai.RoleUser),
+	}
+
+	res, err := m.generateContent(contents)
+	if err != nil {
+		return nil, err
+	}
+
+	result := res.Text()
+	receipt, err := m.parse(result)
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
+}
+
+func (m *Manager) generateContent(contents []*genai.Content) (*genai.GenerateContentResponse, error) {
+	ccfg := m.contentCfg()
+	res, err := m.client.Models.GenerateContent(m.Context, "gemini-2.0-flash", contents, ccfg)
 	if err != nil {
 		logger.Log.LLM(m.Context).Errorf("llm error generate content, error : %s", err)
 		return nil, err
 	}
-	result := res.Text()
-	return &result, nil
+
+	logger.Log.LLM(m.Context).WithField(
+		"tokenUsage", res.UsageMetadata,
+	).Info("token usage")
+	return res, nil
 }
 
 func (m *Manager) contentCfg() *genai.GenerateContentConfig {
 	sys := SystemPrompt()
-	temp := float32(0.7)
 
 	structuredOutput := m.StructuredOutput()
 	return &genai.GenerateContentConfig{
 		ResponseMIMEType:  "application/json",
 		SystemInstruction: genai.NewContentFromText(sys, genai.RoleModel),
-		Temperature:       &temp,
 		ResponseSchema:    structuredOutput,
 	}
 }
 
-func (m Manager) StructuredOutput() *genai.Schema {
-	structuredOutput := &genai.Schema{
-		Type: genai.TypeObject,
-		Properties: map[string]*genai.Schema{
-			"receiptNo": {
-				Type:        genai.TypeString,
-				Description: "Unique receipt or transaction number printed on the receipt",
-			},
-			"shopName": {
-				Type:        genai.TypeString,
-				Description: "Name of the store or business establishment",
-			},
-			"category": {
-				Type:        genai.TypeString,
-				Description: "Category or type of receipt purpose (e.g., Belanja, Transport, Komsumsi)",
-				Example:     "Belanja, Transport, Komsumsi",
-			},
-			"addressShop": {
-				Type:        genai.TypeString,
-				Description: "Physical address of the store or business location",
-			},
-			"contactShop": {
-				Type:        genai.TypeString,
-				Description: "Store contact information (phone number, email, or website)",
-			},
-			"date": {
-				Type:        genai.TypeString,
-				Description: "Transaction date and time in format DD/MM/YYYY HH:MM TZ",
-				Example:     "15/02/2025 00:00 WIB",
-			},
-			"cashierName": {
-				Type:        genai.TypeString,
-				Description: "Name or ID of the cashier who processed the transaction",
-			},
-			"items": {
-				Type:        genai.TypeArray,
-				Description: "List of purchased items with their details",
-				Items: &genai.Schema{
-					Type: genai.TypeObject,
-					Properties: map[string]*genai.Schema{
-						"name": {
-							Type:        genai.TypeString,
-							Description: "Product or item name",
-						},
-						"quantity": {
-							Type:        genai.TypeString,
-							Description: "Quantity or amount of the item purchased",
-						},
-						"unitPrice": {
-							Type:        genai.TypeString,
-							Description: "Price per unit of the item",
-						},
-						"discount": {
-							Type:        genai.TypeString,
-							Description: "Discount amount applied to this item (if any)",
-						},
-						"total": {
-							Type:        genai.TypeString,
-							Description: "Total price for this item (quantity × unitPrice - discount)",
-						},
-					},
-				},
-			},
-			"paymentSummary": {
-				Type:        genai.TypeArray,
-				Description: "Payment summary containing financial details of the transaction",
-				Items: &genai.Schema{
-					Type: genai.TypeObject,
-					Properties: map[string]*genai.Schema{
-						"paymentType": {
-							Type:        genai.TypeString,
-							Description: "Method of payment used (e.g., TUNTAI or CASH, QRIS, CREDIT CARD, DEBIT, E_WALLET)",
-							Example:     "TUNAI or CASH, QRIS, CREDIT_CARD, DEBIT, E_WALLET",
-						},
-						"subTotal": {
-							Type:        genai.TypeString,
-							Description: "Subtotal amount before tax and other charges",
-						},
-						"tax": {
-							Type:        genai.TypeString,
-							Description: "Tax amount applied to the transaction",
-						},
-						"amountPaid": {
-							Type:        genai.TypeString,
-							Description: "Total amount that needs to be paid (subtotal + tax)",
-						},
-						"paid": {
-							Type:        genai.TypeString,
-							Description: "Actual amount paid by the customer",
-						},
-						"change": {
-							Type:        genai.TypeString,
-							Description: "Change amount returned to customer (paid - amountPaid)",
-						},
-					},
-				},
-			},
-			"note": {
-				Type:        genai.TypeString,
-				Description: "Additional notes, terms, or information printed on the receipt",
-			},
-		},
-		PropertyOrdering: []string{"shopName", "category", "addressShop"},
+func (m *Manager) parse(result string) (*ReceiptResponse, error) {
+	receipt := new(ReceiptResponse)
+	err := json.Unmarshal([]byte(result), receipt)
+	if err != nil {
+		logger.Log.LLM(m.Context).Errorf("llm error parse content result, error : %s", err)
+		return nil, err
 	}
-	return structuredOutput
+
+	logger.Log.LLM(m.Context).WithFields(logrus.Fields{"data": receipt, "rawData": result}).Infof("success read the receipt wiht data")
+
+	return receipt, nil
 }

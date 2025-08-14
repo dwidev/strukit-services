@@ -97,9 +97,11 @@ func (l *Logger) DB(ctx context.Context) *logrus.Entry {
 
 func (l *Logger) LLM(ctx context.Context) *logrus.Entry {
 	requestId := ctx.Value(appContext.RequestIDKey)
+	userId := ctx.Value(appContext.UserIDKey)
 
 	return logrus.WithFields(logrus.Fields{
 		"module":    "llm-service",
+		"userId":    userId,
 		"requestId": requestId,
 	})
 }
