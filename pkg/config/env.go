@@ -23,6 +23,8 @@ type schema struct {
 
 	JWT_ACCESS_SECRET  string
 	JWT_REFRESH_SECRET string
+
+	GEMINI_API_KEY string
 }
 
 func Run(env string) *appConfig {
@@ -62,6 +64,8 @@ func (c *appConfig) load() {
 
 		JWT_ACCESS_SECRET:  *c.lookup("JWT_ACCESS_SECRET"),
 		JWT_REFRESH_SECRET: *c.lookup("JWT_REFRESH_SECRET"),
+
+		GEMINI_API_KEY: *c.lookup("GEMINI_API_KEY"),
 	}
 
 	Env = schema
