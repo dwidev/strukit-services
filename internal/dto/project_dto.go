@@ -3,8 +3,6 @@ package dto
 import (
 	"strukit-services/internal/models"
 	"strukit-services/pkg/helper"
-
-	"github.com/google/uuid"
 )
 
 type CreateProjectDto struct {
@@ -15,13 +13,12 @@ type CreateProjectDto struct {
 	EndDate     string  `validate:"required" json:"endDate"`
 }
 
-func (c *CreateProjectDto) Model(userID uuid.UUID) *models.Project {
+func (c *CreateProjectDto) Model() *models.Project {
 	return &models.Project{
-		UserID:      userID,
 		Name:        c.Name,
 		Description: c.Description,
 		TotalBudget: c.TotalBudget,
-		StartDate:   helper.ParseToDate(c.StartDate),
-		EndDate:     helper.ParseToDate(c.EndDate),
+		StartDate:   helper.ParseToDate(&c.StartDate),
+		EndDate:     helper.ParseToDate(&c.EndDate),
 	}
 }

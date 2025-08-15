@@ -11,4 +11,7 @@ const (
 
 	// token usage
 	UserIDKey contextKey = "user_id"
+
+	// client data
+	ProjectID contextKey = "project_id"
 )

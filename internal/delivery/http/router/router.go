@@ -72,8 +72,8 @@ func (a *appRouter) protectedRoutes() {
 
 	receipt := a.V1.Group("/receipt")
 	{
-		receipt.POST("/scan/ocr", a.handler.receipt.ScanOcr)
-		receipt.POST("/scan/upload", a.handler.receipt.ScanUpload)
+		receipt.POST("/scan/ocr/:project-id", a.handler.receipt.ScanOcr)
+		receipt.POST("/scan/upload/:project-id", a.handler.receipt.ScanUpload)
 		receipt.DELETE("/:id", func(ctx *gin.Context) {
 			ctx.JSON(200, gin.H{
 				"message": "receipt detail",

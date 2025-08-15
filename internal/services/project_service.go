@@ -5,9 +5,6 @@ import (
 	"strukit-services/internal/dto"
 	"strukit-services/internal/models"
 	"strukit-services/internal/repository"
-	appContext "strukit-services/pkg/context"
-
-	"github.com/google/uuid"
 )
 
 func NewProject(projectRepo *repository.ProjectRepository) *ProjectService {
@@ -45,9 +42,8 @@ func (a *ProjectService) SoftDelete(ctx context.Context, projectID string) (err 
 }
 
 func (a *ProjectService) CreateNewProject(ctx context.Context, dto *dto.CreateProjectDto) (token *models.Project, err error) {
-	userId := ctx.Value(appContext.UserIDKey).(string)
-	newProject := dto.Model(uuid.MustParse(userId))
-	project, err := a.ProjectRepository.CreateNewProject(newProject)
+	newProject := dto.Model()
+	project, err := a.ProjectRepository.CreateNewProject(ctx, newProject)
 	if err != nil {
 		return nil, err
 	}

@@ -32,11 +32,12 @@ func Bootstrap(cfg *BootstrapConfig) func() {
 	// REPOSITORY
 	userRepo := repository.NewUser(baseRepo)
 	projectRepo := repository.NewProject(baseRepo)
+	receiptRepo := repository.NewReceipt(baseRepo)
 
 	// SERVICE
 	authService := services.NewAuth(token, userRepo)
 	projectService := services.NewProject(projectRepo)
-	receiptService := services.NewReceipt(llm)
+	receiptService := services.NewReceipt(llm, receiptRepo)
 
 	// HANDLER
 	authHandler := http.NewAuth(authService)

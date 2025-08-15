@@ -23,11 +23,13 @@ A. ATURAN FUNDAMENTAL
 
 B. ATURAN PEMROSESAN DATA
 1. AKURASI NILAI: 
+   - Untuk nilai sebelum Pajak/Tax (DPP) tidak perlu diambil, ambil subtotal (nilai keseluruhan transaksi) saja
    - Jangan pernah membulatkan nilai numerik
    - Pertahankan nilai asli persis seperti pada struk
    - Perhatikan dengan teliti nilai pembayaran dan total
 2. VALIDASI TIPE TRANSAKSI:
    - Jika hasil OCR mengindikasikan transaksi non-pembelian (misal: transfer, tarik tunai, top-up, setor tunai, bayar tagihan), proses dihentikan dan berikan respons gagal
+   - Hanya dapat menerima Struk dengan mata uang Rupiah
 3. VALIDASI KOSONG:
    - Jika hasil OCR kosong atau hanya berisi teks umum yang tidak relevan dengan struk, proses dihentikan dan berikan respons gagal
 4. KATEGORISASI: 

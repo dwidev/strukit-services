@@ -50,34 +50,31 @@ CREATE TABLE receipts (
     project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     
-    -- Receipt Image
-    image_url TEXT NOT NULL,
-    image_size INTEGER, -- in bytes
-    image_width INTEGER,
-    image_height INTEGER,
-    
     -- Extracted Data
+    receipt_number VARCHAR(100),
     merchant_name VARCHAR(255),
+    sub_total DECIMAL(15,2) NOT NULL,
+    discount DECIMAL(15,2) NOT NULL DEFAULT 0,
+    tax DECIMAL(15,2) DEFAULT 0,
     total_amount DECIMAL(15,2) NOT NULL,
-    tax_amount DECIMAL(15,2) DEFAULT 0,
+    paid DECIMAL(15,2) NOT NULL,
+    change DECIMAL(15,2) NOT NULL,
     transaction_date DATE NOT NULL,
     transaction_time TIME,
-    
-    -- AI Processing
-    raw_extracted_text TEXT,
-    extraction_confidence DECIMAL(3,2), -- 0.00 to 1.00
-    ai_model_used VARCHAR(50) DEFAULT 'gemini',
-    processing_status VARCHAR(20) DEFAULT 'pending' CHECK (processing_status IN ('pending', 'processing', 'completed', 'failed')),
-    
+    payment_method VARCHAR(50), -- cash, debit, credit, etc
+
     -- User Verification
     is_verified BOOLEAN DEFAULT FALSE,
     verification_notes TEXT,
-    
-    -- Additional Info
-    receipt_number VARCHAR(100),
-    payment_method VARCHAR(50), -- cash, debit, credit, etc
-    notes TEXT,
-    
+
+     -- AI Processing
+    extraction_confidence DECIMAL(3,2), -- 0.00 to 1.00
+    ai_model_used VARCHAR(30) DEFAULT 'gemini',
+
+    -- Duplication info
+    fingerprint VARCHAR(255) NOT NULL, -- from project id, content hash
+    content_hash VARCHAR(255) NOT NULL,-- from merchantname, receipt no, amount, receipt date
+        
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -109,6 +106,20 @@ CREATE TABLE receipt_items (
     -- Constraints
     CONSTRAINT positive_quantity CHECK (quantity > 0),
     CONSTRAINT positive_total_price CHECK (total_price >= 0)
+);
+
+CREATE TABLE receipt_meta_image (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    receipt_id UUID NOT NULL REFERENCES receipts(id) ON DELETE CASCADE,
+    
+    -- Receipt Image
+    image_url TEXT NOT NULL,
+    image_size INTEGER,
+    image_width INTEGER,
+    image_height INTEGER,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE budgets (
@@ -169,6 +180,9 @@ CREATE INDEX idx_receipts_user_project_date ON receipts(user_id, project_id, tra
 -- Receipt items index
 CREATE INDEX idx_receipt_items_receipt_id ON receipt_items(receipt_id);
 CREATE INDEX idx_receipt_items_name ON receipt_items(item_name);
+
+CREATE INDEX idx_receipt_image_meta_id ON receipt_meta_image(receipt_id);
+
 
 -- Projects index
 CREATE INDEX idx_projects_user_id ON projects(user_id);

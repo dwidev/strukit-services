@@ -64,8 +64,10 @@ func (p *ProjectRepository) SoftDelete(ctx context.Context, projectID string) (e
 	return nil
 }
 
-func (p *ProjectRepository) CreateNewProject(project *models.Project) (res *models.Project, err error) {
+func (p *ProjectRepository) CreateNewProject(ctx context.Context, project *models.Project) (res *models.Project, err error) {
+	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	status := models.ProjectStatusActive
+	project.UserID = userId
 	project.Status = &status
 	if err = p.db.Create(project).Error; err != nil {
 		return nil, err

@@ -47,8 +47,13 @@ func (m Manager) StructuredOutput() *genai.Schema {
 			},
 			"date": {
 				Type:        genai.TypeString,
-				Description: "Transaction date and time in format DD/MM/YYYY HH:MM TZ",
-				Example:     "15/02/2025 00:00 WIB",
+				Description: "Transaction date and time in format 2025-08-15",
+				Example:     "2025-08-15T1+07:00",
+			},
+			"time": {
+				Type:        genai.TypeString,
+				Description: "Transaction date and time in format 4:27:38",
+				Example:     "4:27:38",
 			},
 			"cashierName": {
 				Type:        genai.TypeString,
@@ -74,7 +79,7 @@ func (m Manager) StructuredOutput() *genai.Schema {
 						},
 						"discount": {
 							Type:        genai.TypeInteger,
-							Description: "Discount amount applied to this item (if any)",
+							Description: "Discount per item",
 						},
 						"total": {
 							Type:        genai.TypeInteger,
@@ -87,18 +92,22 @@ func (m Manager) StructuredOutput() *genai.Schema {
 				Type:        genai.TypeObject,
 				Description: "Payment summary containing financial details of the receipt transaction",
 				Properties: map[string]*genai.Schema{
-					"paymentType": {
+					"paymentMethod": {
 						Type:        genai.TypeString,
 						Description: "Method of payment used (e.g., TUNTAI or CASH, QRIS, CREDIT CARD, DEBIT, E_WALLET)",
 						Example:     "TUNAI or CASH, QRIS, CREDIT_CARD, DEBIT, E_WALLET",
 					},
 					"subTotal": {
 						Type:        genai.TypeInteger,
-						Description: "Subtotal amount before tax and other charges",
+						Description: "Subtotal amount all our transaction",
 					},
 					"tax": {
 						Type:        genai.TypeInteger,
-						Description: "Tax amount applied to the transaction",
+						Description: "Tax amount applied to the transaction, (e.g., PPN, Pajak, etc)",
+					},
+					"discount": {
+						Type:        genai.TypeInteger,
+						Description: "Discount amount all our transaction",
 					},
 					"amountPaid": {
 						Type:        genai.TypeInteger,

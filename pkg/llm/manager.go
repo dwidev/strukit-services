@@ -96,7 +96,7 @@ func (m *Manager) parse(result string) (*ReceiptResponse, error) {
 	receipt := new(ReceiptResponse)
 	err := json.Unmarshal([]byte(result), receipt)
 	if err != nil {
-		logger.Log.LLM(m.Context).Errorf("llm error parse content result, error : %s", err)
+		logger.Log.LLM(m.Context).WithField("raw", receipt).Errorf("llm error parse content result, error : %s", err)
 		return nil, err
 	}
 

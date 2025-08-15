@@ -38,4 +38,4 @@ dev:
 	air
 
 compose-config:
-	docker-compose --file docker-compose.dev.yaml --env-file .env.dev config
+	docker-compose --file $(DEV_COMPOSE) --env-file .env.dev config
