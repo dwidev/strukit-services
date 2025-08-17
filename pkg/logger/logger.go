@@ -14,15 +14,15 @@ import (
 var Log *Logger
 
 func New(cfg *Config) *Logger {
-
 	logger := logrus.New()
 
 	if cfg.Env == constant.Prod {
+		// prod log
 		logDir := "./.logs"
 		os.MkdirAll(logDir, 0755)
 
-		logrus.SetLevel(logrus.InfoLevel)
-		logrus.SetOutput(&lumberjack.Logger{
+		logger.SetLevel(logrus.InfoLevel)
+		logger.SetOutput(&lumberjack.Logger{
 			Filename: filepath.Join(logDir, "strukit-prod.log"),
 			MaxSize:  10,
 			MaxAge:   30,
@@ -30,14 +30,14 @@ func New(cfg *Config) *Logger {
 		})
 	} else {
 		// dev log
-		logrus.SetLevel(logrus.DebugLevel)
-		logrus.SetOutput(os.Stdout)
+		logger.SetLevel(logrus.DebugLevel)
+		logger.SetOutput(os.Stdout)
 	}
 
-	logrus.SetFormatter(&logrus.JSONFormatter{
+	logger.SetFormatter(&logrus.JSONFormatter{
 		PrettyPrint: true,
 	})
-	logrus.SetReportCaller(true)
+	logger.SetReportCaller(true)
 
 	Log = &Logger{
 		Logger: logger,
@@ -105,6 +105,15 @@ func (l *Logger) LLM(ctx context.Context) *logrus.Entry {
 	return logrus.WithFields(logrus.Fields{
 		"module":    "llm-service",
 		"userId":    userId,
+		"requestId": requestId,
+	})
+}
+
+func (l *Logger) App(ctx context.Context) *logrus.Entry {
+	requestId := ctx.Value(appContext.RequestIDKey)
+
+	return logrus.WithFields(logrus.Fields{
+		"module":    "app-error",
 		"requestId": requestId,
 	})
 }
