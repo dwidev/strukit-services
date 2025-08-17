@@ -19,7 +19,7 @@ type Receipt struct {
 	Tax             *float64   `json:"tax"`
 	TotalAmount     float64    `json:"totalAmount"`
 	Paid            float64    `json:"paid"`
-	Change          float64    `json:"change"`	
+	Change          float64    `json:"change"`
 	TransactionDate time.Time  `json:"transactionDate"`
 	TransactionTime *time.Time `json:"transactionTime"`
 	PaymentMethod   *string    `json:"paymentMethod"`
@@ -35,4 +35,6 @@ type Receipt struct {
 	// Duplication info
 	Fingerprint string `json:"fingerprint"`
 	ContentHash string `json:"contentHash"`
+
+	Items []*ReceiptItem `gorm:"foreignKey:ReceiptID;" json:"items"`
 }

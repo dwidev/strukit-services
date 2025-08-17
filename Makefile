@@ -29,11 +29,9 @@ reset-up:
 	@docker ps -a
 	@docker volume ls
 	@make up
-	@docker ps -a
 
 dev:
 	@echo "$(GREEN)Starting development environment... $(NC)"
-	@export GO_ENV="dev"
 	@make start
 	air
 

@@ -77,13 +77,16 @@ func (l *Logger) Handler(ctx context.Context) *logrus.Entry {
 	})
 }
 
-func (l *Logger) Service(ctx context.Context) *logrus.Entry {
+func (l *Logger) Service(ctx context.Context, data ...any) *logrus.Entry {
 	requestId := ctx.Value(appContext.RequestIDKey)
-
-	return logrus.WithFields(logrus.Fields{
+	f := logrus.Fields{
 		"module":    "services",
 		"requestId": requestId,
-	})
+	}
+	if len(data) > 0 {
+		f["req_data"] = data
+	}
+	return logrus.WithFields(f)
 }
 
 func (l *Logger) DB(ctx context.Context) *logrus.Entry {

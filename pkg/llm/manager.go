@@ -101,6 +101,5 @@ func (m *Manager) parse(result string) (*ReceiptResponse, error) {
 	}
 
 	logger.Log.LLM(m.Context).WithFields(logrus.Fields{"data": receipt, "rawData": result}).Infof("success read the receipt wiht data")
-
 	return receipt, nil
 }

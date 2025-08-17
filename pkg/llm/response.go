@@ -3,6 +3,8 @@ package llm
 import (
 	"strukit-services/internal/models"
 	"strukit-services/pkg/helper"
+
+	"github.com/google/uuid"
 )
 
 type ItemResponse struct {
@@ -47,6 +49,7 @@ func (rr *ReceiptResponse) Model() *models.Receipt {
 	date := helper.ParseToDate(rr.Date)
 	time := helper.ParseTimeOnly(*rr.Time)
 
+	receiptID := uuid.New()
 	accuracy := float64(rr.AIResponse.Accuracy) / 10
 	subTotal := helper.IntPtrToFloat64(rr.PaymentSummary.SubTotal)
 	Discount := helper.IntPtrToFloat64(rr.PaymentSummary.Discount)
@@ -55,7 +58,35 @@ func (rr *ReceiptResponse) Model() *models.Receipt {
 	Paid := helper.IntPtrToFloat64(rr.PaymentSummary.Paid)
 	Change := helper.IntPtrToFloat64(rr.PaymentSummary.Change)
 
+	var items []*models.ReceiptItem
+
+	if len(*rr.Items) > 0 {
+		for _, v := range *rr.Items {
+			up := helper.IntPtrToFloat64(v.UnitPrice)
+			tp := helper.IntPtrToFloat64(v.Total)
+			da := helper.IntPtrToFloat64(v.Discount)
+
+			i := &models.ReceiptItem{
+				ID:             uuid.New(),
+				ReceiptID:      receiptID,
+				ItemName:       *v.Name,
+				Quantity:       *v.Quantity,
+				UnitPrice:      &up,
+				TotalPrice:     tp,
+				ItemCode:       nil,
+				Category:       nil,
+				DiscountAmount: da,
+				LineNumber:     nil,
+			}
+
+			items = append(items, i)
+		}
+	}
+
 	return &models.Receipt{
+		BaseModel: models.BaseModel{
+			ID: receiptID,
+		},
 		ReceiptNumber:        rr.ReceiptNo,
 		MerchantName:         rr.ShopName,
 		SubTotal:             subTotal,
@@ -73,5 +104,6 @@ func (rr *ReceiptResponse) Model() *models.Receipt {
 		AIModelUsed:          "gemini",
 		Fingerprint:          "",
 		ContentHash:          "",
+		Items:                items,
 	}
 }

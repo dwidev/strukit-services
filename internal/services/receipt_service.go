@@ -67,7 +67,7 @@ func (r *ReceiptService) Scan(ctx context.Context, image []byte) (*models.Receip
 	model := receipt.Model()
 	res, err := r.ReceiptRepository.Save(ctx, model)
 	if err != nil {
-		logger.Log.Service(ctx).WithField("ai_response", receipt).WithField("error", err).Error("error when save receipt with success extraction data")
+		logger.Log.Service(ctx, model).WithField("ai_response", receipt).WithField("error", err).Error("error when save receipt with success extraction data")
 		return nil, err
 	}
 
