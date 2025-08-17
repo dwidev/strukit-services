@@ -2,12 +2,16 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/http"
 	"strukit-services/internal/models"
 	appContext "strukit-services/pkg/context"
 	"strukit-services/pkg/logger"
 	"strukit-services/pkg/responses"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func NewProject(base *BaseRepository) *ProjectRepository {
@@ -26,7 +30,10 @@ func (p *ProjectRepository) GetProjectByID(ctx context.Context, projectId string
 	res := p.db.First(&project, "id = ? AND user_id = ?", uuid.MustParse(projectId), userId)
 
 	if res.Error != nil {
-		logger.Log.Errorf("error when get project by id : %s", res.Error)
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			return nil, responses.Err(http.StatusNotFound, fmt.Sprintf("not found project by project id %s", projectId))
+		}
+		logger.Log.DB(ctx).Errorf("error when get project by id : %s", res.Error)
 		return nil, res.Error
 	}
 
@@ -58,6 +65,7 @@ func (p *ProjectRepository) SoftDelete(ctx context.Context, projectID string) (e
 	}
 
 	if result.RowsAffected == 0 {
+		logger.Log.DB(ctx).Warnf("delete project error, not match user_id:%s and project_id:%s", userId, projectID)
 		return responses.Forbidden()
 	}
 
@@ -70,6 +78,7 @@ func (p *ProjectRepository) CreateNewProject(ctx context.Context, project *model
 	project.UserID = userId
 	project.Status = &status
 	if err = p.db.Create(project).Error; err != nil {
+		logger.Log.DB(ctx).Errorf("error create project : %s", err)
 		return nil, err
 	}
 

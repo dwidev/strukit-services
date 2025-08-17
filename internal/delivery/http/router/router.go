@@ -27,6 +27,7 @@ func (a *appRouter) Build() {
 		panic("please run logger.New() at main.go, before build the router")
 	}
 
+	a.router.Use(middleware.SetupContext())
 	a.router.Use(middleware.LogRequest())
 	a.router.Use(middleware.CatchError())
 	a.V1 = a.router.Group("/api/v1")
