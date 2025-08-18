@@ -47,6 +47,14 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 	return data, nil
 }
 
+func (r *ReceiptRepository) Delete(ctx context.Context) error {
+	receiptID := ctx.Value(appContext.ReceiptIDKey).(uuid.UUID)
+	if err := r.db.Model(&models.Receipt{}).Delete("id = ?", receiptID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *ReceiptRepository) FindByFingerprint(ctx context.Context, fingerprint string) ([]*models.Receipt, error) {
 	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
 	var receipts []*models.Receipt

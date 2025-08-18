@@ -32,6 +32,16 @@ func SetupContext() gin.HandlerFunc {
 			ctx = context.WithValue(ctx, appContext.ProjectID, uuid)
 		}
 
+		if receiptID := c.Param("receipt-id"); receiptID != "" {
+			uuid, err := uuid.Parse(receiptID)
+			if err != nil {
+				c.JSON(400, responses.MessageResponse{StatusCode: 400, Message: err.Error()})
+				c.Abort()
+				return
+			}
+			ctx = context.WithValue(ctx, appContext.ReceiptIDKey, uuid)
+		}
+
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

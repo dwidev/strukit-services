@@ -11,6 +11,13 @@ type DataResponse struct {
 	Data       any `json:"data"`
 }
 
+func New(StatusCode int, Message any) *MessageResponse {
+	return &MessageResponse{
+		StatusCode: StatusCode,
+		Message:    Message,
+	}
+}
+
 type MessageResponse struct {
 	StatusCode int `json:"statusCode"`
 	Message    any `json:"message"`

@@ -111,3 +111,11 @@ func (r *ReceiptService) processingData(ctx context.Context, fn func() (*llm.Rec
 
 	return res, nil
 }
+
+func (r *ReceiptService) Delete(ctx context.Context) error {
+	if err := r.ReceiptRepository.Delete(ctx); err != nil {
+		return fmt.Errorf("[main.(*ReceiptService).Delete] error when delete receipt %w", err)
+	}
+
+	return nil
+}

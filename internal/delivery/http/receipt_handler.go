@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strukit-services/internal/services"
 	"strukit-services/pkg/logger"
+	"strukit-services/pkg/responses"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,7 +41,7 @@ func (r *ReceiptHandler) ScanOcr(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func (r *ReceiptHandler) ScanUpload(c *gin.Context) {
@@ -71,5 +72,16 @@ func (r *ReceiptHandler) ScanUpload(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
+}
+
+func (r *ReceiptHandler) OnDelete(c *gin.Context) {
+	ctx := c.Request.Context()
+	err := r.ReceiptService.Delete(ctx)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, responses.New(http.StatusCreated, "Success delete receipt"))
 }

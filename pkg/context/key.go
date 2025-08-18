@@ -13,5 +13,6 @@ const (
 	UserIDKey contextKey = "user_id"
 
 	// client data
-	ProjectID contextKey = "project_id"
+	ProjectID    contextKey = "project_id"
+	ReceiptIDKey contextKey = "receipt_id"
 )

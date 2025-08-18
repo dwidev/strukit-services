@@ -73,13 +73,9 @@ func (a *appRouter) protectedRoutes() {
 
 	receipt := a.V1.Group("/receipt")
 	{
+		receipt.DELETE("/:receipt-id", a.handler.receipt.OnDelete)
 		receipt.POST("/scan/ocr/:project-id", a.handler.receipt.ScanOcr)
 		receipt.POST("/scan/upload/:project-id", a.handler.receipt.ScanUpload)
-		receipt.DELETE("/:id", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "receipt detail",
-			})
-		})
 		receipt.GET("/list", func(ctx *gin.Context) {
 			ctx.JSON(200, gin.H{
 				"message": "receipt list",
