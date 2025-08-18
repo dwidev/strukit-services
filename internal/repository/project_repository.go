@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"strukit-services/internal/models"
 	appContext "strukit-services/pkg/context"
 	"strukit-services/pkg/logger"
@@ -58,7 +59,7 @@ func (p *ProjectRepository) SoftDelete(ctx context.Context, projectID string) (e
 	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	result := p.db.Model(&models.Project{}).
 		Where("id = ? AND user_id = ?", uuid.MustParse(projectID), userId).
-		Update("is_soft_delete", true)
+		Updates(&models.Project{IsSoftDelete: true, DeletedAt: p.Now()})
 
 	if result.Error != nil {
 		return err
@@ -78,6 +79,10 @@ func (p *ProjectRepository) CreateNewProject(ctx context.Context, project *model
 	project.UserID = userId
 	project.Status = &status
 	if err = p.db.Create(project).Error; err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return nil, responses.Err(http.StatusConflict, fmt.Sprintf("Project with name %s already exist, please create different project name", project.Name))
+		}
+
 		logger.Log.DB(ctx).Errorf("error create project : %s", err)
 		return nil, err
 	}

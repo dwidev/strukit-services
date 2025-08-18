@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strukit-services/pkg/logger"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -39,4 +40,9 @@ func (b *BaseRepository) Transaction(ctx context.Context, fn func(*gorm.DB) erro
 	}
 
 	return nil
+}
+
+func (b BaseRepository) Now() *time.Time {
+	n := time.Now()
+	return &n
 }

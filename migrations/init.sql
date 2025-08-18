@@ -23,7 +23,7 @@ CREATE TABLE users (
 CREATE TABLE projects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     total_budget DECIMAL(15,2) DEFAULT 0,
     start_date DATE,

@@ -68,6 +68,10 @@ func (v *AppValidator) Valid(s any) []string {
 			msg := fmt.Sprintf("%s is min %v", jsonTag, minVal)
 			results = append(results, msg)
 			return
+		case "gtfield":
+			results = append(results, fmt.Sprintf("%s greater than %s", e.Field(), e.Param()))
+		default:
+			results = append(results, fmt.Sprintf("Validation error %s", e))
 		}
 
 	}

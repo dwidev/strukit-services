@@ -24,7 +24,7 @@ logs:
 reset-up:
 	@echo "$(RED)Hard reset - this will delete all data!!!!!$(NC)"
 	@read -p "Continue? (y/N):" confirm && [ "$$confirm" = "y" ]
-	@docker-compose -f $(DEV_COMPOSE) down -v
+	@docker-compose -f $(DEV_COMPOSE) --env-file .env.dev down -v
 	@docker volume prune -a
 	@docker ps -a
 	@docker volume ls

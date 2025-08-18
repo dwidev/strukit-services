@@ -92,7 +92,7 @@ func (l *Logger) Service(ctx context.Context, data ...any) *logrus.Entry {
 func (l *Logger) DB(ctx context.Context) *logrus.Entry {
 	requestId := ctx.Value(appContext.RequestIDKey)
 
-	return logrus.WithFields(logrus.Fields{
+	return l.WithFields(logrus.Fields{
 		"module":    "DB",
 		"requestId": requestId,
 	})
