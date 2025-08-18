@@ -85,3 +85,14 @@ func (r *ReceiptHandler) OnDelete(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, responses.New(http.StatusCreated, "Success delete receipt"))
 }
+
+func (r *ReceiptHandler) GetReceiptByProjectID(c *gin.Context) {
+	ctx := c.Request.Context()
+	res, err := r.ReceiptService.GetReceiptByProjectID(ctx)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, responses.New(http.StatusOK, res))
+}

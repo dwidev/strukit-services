@@ -29,6 +29,14 @@ type ReceiptService struct {
 	DuplicateDetectionService *DuplicateDetectionService
 }
 
+func (r *ReceiptService) GetReceiptByProjectID(ctx context.Context) (receipts []*models.Receipt, err error) {
+	if receipts, err = r.ReceiptRepository.GetReceiptByProjectID(ctx); err != nil {
+		return nil, fmt.Errorf("[main.(*ReceiptService).GetReceiptByProjectID] error when get receipt %w", err)
+	}
+
+	return receipts, nil
+}
+
 func (r *ReceiptService) CheckingDuplicates(ctx context.Context, receipt *models.Receipt) error {
 	checked, err := r.DuplicateDetectionService.Checking(ctx, receipt)
 	if err != nil {

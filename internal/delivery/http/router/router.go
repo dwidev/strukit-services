@@ -73,6 +73,7 @@ func (a *appRouter) protectedRoutes() {
 
 	receipt := a.V1.Group("/receipt")
 	{
+		receipt.GET("/:project-id", a.handler.receipt.GetReceiptByProjectID)
 		receipt.DELETE("/:receipt-id", a.handler.receipt.OnDelete)
 		receipt.POST("/scan/ocr/:project-id", a.handler.receipt.ScanOcr)
 		receipt.POST("/scan/upload/:project-id", a.handler.receipt.ScanUpload)
@@ -91,7 +92,7 @@ func (a *appRouter) protectedRoutes() {
 
 	project := a.V1.Group("/project")
 	{
-		project.GET("/:id", a.handler.project.GetProjectByID)
+		project.GET("/:project-id", a.handler.project.GetProjectByID)
 		project.DELETE("/:id", a.handler.project.SoftDelete)
 		project.GET("/all", a.handler.project.All)
 		project.POST("/create", a.handler.project.CreateNewProject)

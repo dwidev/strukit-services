@@ -47,6 +47,17 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 	return data, nil
 }
 
+func (r *ReceiptRepository) GetReceiptByProjectID(ctx context.Context) (receipts []*models.Receipt, err error) {
+	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
+	query := r.db.Model(&models.Receipt{}).WithContext(ctx)
+
+	if err = query.Where("project_id = ?", projectId).Find(&receipts).Error; err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (r *ReceiptRepository) Delete(ctx context.Context) error {
 	receiptID := ctx.Value(appContext.ReceiptIDKey).(uuid.UUID)
 	if err := r.db.Model(&models.Receipt{}).Delete("id = ?", receiptID).Error; err != nil {

@@ -22,3 +22,4 @@ type ReceiptItem struct {
 	LineNumber *int      `json:"line_number,omitempty"`
 	CreatedAt  time.Time `json:"created_at"`
 }
+	
