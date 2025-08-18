@@ -14,7 +14,7 @@ func CatchError() gin.HandlerFunc {
 
 		if len(ctx.Errors) > 0 {
 			err := ctx.Errors.Last()
-			logger.Log.Errorf("catched error with : %s", err)
+			logger.Log.Errorf("%s", err)
 
 			var appErr *responses.AppError
 			if errors.As(err, &appErr) {

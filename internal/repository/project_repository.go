@@ -25,6 +25,23 @@ type ProjectRepository struct {
 	*BaseRepository
 }
 
+func (p *ProjectRepository) CheckExistProject(ctx context.Context) error {
+	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
+	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
+
+	var exist bool
+	q := "SELECT EXISTS (SELECT 1 FROM projects WHERE id = ? AND user_id = ?)"
+	if err := p.db.Raw(q, projectId, userId).Scan(&exist).Error; err != nil {
+		return err
+	}
+
+	if !exist {
+		return responses.Err(http.StatusNotFound, fmt.Sprintf("Project with id %s and user_id %s do not exist", projectId, userId))
+	}
+
+	return nil
+}
+
 func (p *ProjectRepository) GetProjectByID(ctx context.Context, projectId string) (result *models.Project, err error) {
 	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	var project *models.Project

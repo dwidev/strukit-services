@@ -2,7 +2,10 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"reflect"
+	"runtime"
 	"strukit-services/internal/models"
 	"strukit-services/internal/repository"
 	"strukit-services/pkg/llm"
@@ -10,8 +13,9 @@ import (
 	"strukit-services/pkg/responses"
 )
 
-func NewReceipt(llm *llm.Manager, repo *repository.ReceiptRepository, duplicateService *DuplicateDetectionService) *ReceiptService {
+func NewReceipt(llm *llm.Manager, repo *repository.ReceiptRepository, projectRepo *repository.ProjectRepository, duplicateService *DuplicateDetectionService) *ReceiptService {
 	return &ReceiptService{
+		ProjectRepository:         projectRepo,
 		ReceiptRepository:         repo,
 		Llm:                       llm,
 		DuplicateDetectionService: duplicateService,
@@ -19,6 +23,7 @@ func NewReceipt(llm *llm.Manager, repo *repository.ReceiptRepository, duplicateS
 }
 
 type ReceiptService struct {
+	*repository.ProjectRepository
 	*repository.ReceiptRepository
 	Llm                       *llm.Manager
 	DuplicateDetectionService *DuplicateDetectionService
@@ -47,36 +52,40 @@ func (r *ReceiptService) CheckingDuplicates(ctx context.Context, receipt *models
 }
 
 func (r *ReceiptService) ScanFromOCR(ctx context.Context, rawOcr string) (*models.Receipt, error) {
-	// 1. Extract data using AI
-	r.Llm.Context = ctx
-	receipt, err := r.Llm.ScanReceiptFromOCR(rawOcr)
+	model, err := r.processingData(ctx, func() (*llm.ReceiptResponse, error) {
+		return r.Llm.ScanReceiptFromOCR(rawOcr)
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	if !receipt.AIResponse.Success {
-		return nil, responses.Err(http.StatusBadRequest, receipt.AIResponse.Message)
-	}
-
-	// 2. Convert to model
-	model := receipt.Model()
-
-	// 3. Check for duplicates
-
-	// 4. Save to database
-	res, err := r.ReceiptRepository.Save(ctx, model)
-	if err != nil {
-		logger.Log.Service(ctx, model).WithField("ai_response", receipt).WithField("error", err).Error("error when save receipt with success extraction data")
-		return nil, err
-	}
-
-	return res, nil
+	return model, nil
 }
 
 func (r *ReceiptService) Scan(ctx context.Context, image []byte) (*models.Receipt, error) {
-	// 1. Extract data using AI
+	model, err := r.processingData(ctx, func() (*llm.ReceiptResponse, error) {
+		return r.Llm.ScanReceiptWithImage(image)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return model, nil
+}
+
+func (r *ReceiptService) processingData(ctx context.Context, fn func() (*llm.ReceiptResponse, error)) (*models.Receipt, error) {
+	// 1. Checking project exists
+	err := r.ProjectRepository.CheckExistProject(ctx)
+	if err != nil {
+		fnName := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
+		return nil, fmt.Errorf("error when checking project exist at [main.(*ReceiptService).processingData] with %s Err : %w", fnName, err)
+	}
+
+	// 2. Generate LLM extraction
 	r.Llm.Context = ctx
-	receipt, err := r.Llm.ScanReceiptWithImage(image)
+	receipt, err := fn()
 	if err != nil {
 		return nil, err
 	}
@@ -85,19 +94,18 @@ func (r *ReceiptService) Scan(ctx context.Context, image []byte) (*models.Receip
 		return nil, responses.BodyErr(receipt.AIResponse.Message)
 	}
 
-	// 2. Convert to model
+	// 3. Checking duplicated data
 	model := receipt.Model()
-
-	// 3. Check for duplicates
 	err = r.CheckingDuplicates(ctx, model)
 	if err != nil {
+		logger.Log.Service(ctx, model).WithField("error", err).Error("error when check duplicated data")
 		return nil, err
 	}
 
-	// 4. Save to database
+	// 4. Saving receipt
 	res, err := r.ReceiptRepository.Save(ctx, model)
 	if err != nil {
-		logger.Log.Service(ctx, model).WithField("ai_response", receipt).WithField("error", err).Error("error when save receipt with success extraction data")
+		logger.Log.Service(ctx, model).WithField("error", err).Error("error when save receipt with success extraction data")
 		return nil, err
 	}
 
