@@ -47,8 +47,7 @@ type appConfig struct {
 func (c *appConfig) load() {
 	file := c.GetEnvFile()
 	if err := godotenv.Load(file); err != nil {
-		logger.Log.Fatalf("env file with %s error on loaded file\n err : %s", file, err)
-
+		logger.Log.Fatalf("env file with %s error on loaded file err : %s", file, err)
 	}
 
 	schema := &schema{

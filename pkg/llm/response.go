@@ -96,7 +96,7 @@ func (rr *ReceiptResponse) Model() *models.Receipt {
 		Paid:                 Paid,
 		Change:               Change,
 		TransactionDate:      *date,
-		TransactionTime:      time,
+		TransactionTime:      (*models.OnlyTime)(time),
 		PaymentMethod:        rr.PaymentSummary.PaymentMethod,
 		IsVerified:           true,
 		VerificationNotes:    nil,

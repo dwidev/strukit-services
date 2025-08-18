@@ -176,6 +176,8 @@ CREATE INDEX idx_receipts_merchant ON receipts(merchant_name);
 CREATE INDEX idx_receipts_amount ON receipts(total_amount);
 CREATE INDEX idx_receipts_created_at ON receipts(created_at DESC);
 CREATE INDEX idx_receipts_user_project_date ON receipts(user_id, project_id, transaction_date);
+CREATE INDEX IF NOT EXISTS idx_receipts_content_hash ON receipts(content_hash);
+CREATE INDEX IF NOT EXISTS idx_receipts_fingerprint ON receipts(fingerprint);
 
 -- Receipt items index
 CREATE INDEX idx_receipt_items_receipt_id ON receipt_items(receipt_id);

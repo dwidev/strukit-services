@@ -59,7 +59,7 @@ func (l *Logger) Request(ctx context.Context, body any) *logrus.Entry {
 	path := ctx.Value(appContext.PathKey)
 	ip := ctx.Value(appContext.IPAddressKey)
 
-	return logrus.WithFields(logrus.Fields{
+	return l.WithFields(logrus.Fields{
 		"requestId": requestId,
 		"method":    method,
 		"path":      path,
@@ -71,7 +71,7 @@ func (l *Logger) Request(ctx context.Context, body any) *logrus.Entry {
 func (l *Logger) Handler(ctx context.Context) *logrus.Entry {
 	requestId := ctx.Value(appContext.RequestIDKey)
 
-	return logrus.WithFields(logrus.Fields{
+	return l.WithFields(logrus.Fields{
 		"module":    "handler",
 		"requestId": requestId,
 	})
@@ -86,7 +86,7 @@ func (l *Logger) Service(ctx context.Context, data ...any) *logrus.Entry {
 	if len(data) > 0 {
 		f["req_data"] = data
 	}
-	return logrus.WithFields(f)
+	return l.WithFields(f)
 }
 
 func (l *Logger) DB(ctx context.Context) *logrus.Entry {
@@ -102,7 +102,7 @@ func (l *Logger) LLM(ctx context.Context) *logrus.Entry {
 	requestId := ctx.Value(appContext.RequestIDKey)
 	userId := ctx.Value(appContext.UserIDKey)
 
-	return logrus.WithFields(logrus.Fields{
+	return l.WithFields(logrus.Fields{
 		"module":    "llm-service",
 		"userId":    userId,
 		"requestId": requestId,
@@ -112,7 +112,7 @@ func (l *Logger) LLM(ctx context.Context) *logrus.Entry {
 func (l *Logger) App(ctx context.Context) *logrus.Entry {
 	requestId := ctx.Value(appContext.RequestIDKey)
 
-	return logrus.WithFields(logrus.Fields{
+	return l.WithFields(logrus.Fields{
 		"module":    "app-error",
 		"requestId": requestId,
 	})

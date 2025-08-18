@@ -46,3 +46,47 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 
 	return data, nil
 }
+
+func (r *ReceiptRepository) FindByFingerprint(ctx context.Context, fingerprint string) ([]*models.Receipt, error) {
+	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
+	var receipts []*models.Receipt
+	if err := r.db.WithContext(ctx).Where("fingerprint = ? AND project_id = ?", fingerprint, projectId).Find(&receipts).Error; err != nil {
+		return nil, err
+	}
+
+	return receipts, nil
+}
+
+func (r *ReceiptRepository) FindByContentHash(ctx context.Context, hash string) ([]*models.Receipt, error) {
+	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
+	var receipts []*models.Receipt
+	if err := r.db.WithContext(ctx).Where("content_hash = ? AND project_id = ?", hash, projectId).Find(&receipts).Error; err != nil {
+		return nil, err
+	}
+
+	return receipts, nil
+}
+
+func (r *ReceiptRepository) FindSimilarReceipts(ctx context.Context, criteria *models.Receipt) ([]*models.Receipt, error) {
+	var receipts []*models.Receipt
+
+	query := r.db.WithContext(ctx).Where("project_id = ?", criteria.ProjectID)
+
+	if criteria.MerchantName != nil {
+		query = query.Where("merchant_name ILIKE ?", "%"+*criteria.MerchantName+"%")
+	}
+
+	minAmount := criteria.TotalAmount * (1 - 0.2)
+	maxAmount := criteria.TotalAmount * (1 + 0.3)
+	query = query.Where("total_amount BETWEEN ? AND ?", minAmount, maxAmount)
+
+	startDate := criteria.TransactionDate.AddDate(0, 0, -1)
+	endDate := criteria.TransactionDate.AddDate(0, 0, 1)
+	query = query.Where("transaction_date BETWEEN ? AND ?", startDate, endDate)
+
+	if err := query.Find(&receipts).Error; err != nil {
+		return nil, err
+	}
+
+	return receipts, nil
+}
