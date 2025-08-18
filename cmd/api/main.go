@@ -13,9 +13,8 @@ import (
 
 func init() {
 	env := os.Getenv("GO_ENV")
-
-	config.Run(env)
 	logger.New(&logger.Config{Env: constant.Environment(env)})
+	config.Run(env)
 
 	if config.Env.RuntimeEnv == constant.Prod {
 		gin.SetMode(gin.ReleaseMode)
