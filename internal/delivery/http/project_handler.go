@@ -24,16 +24,8 @@ type ProjectHandler struct {
 }
 
 func (a *ProjectHandler) GetProjectByID(c *gin.Context) {
-	projectID := c.Param("id")
 	ctx := c.Request.Context()
-
-	if projectID == "" {
-		err := responses.BodyErr("project id cannot be empty")
-		c.Error(err)
-		return
-	}
-
-	results, err := a.ProjectService.GetProjectByID(ctx, projectID)
+	results, err := a.ProjectService.GetProjectByID(ctx)
 	if err != nil {
 		c.Error(err)
 		return

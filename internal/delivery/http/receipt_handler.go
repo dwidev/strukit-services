@@ -96,3 +96,14 @@ func (r *ReceiptHandler) GetReceiptByProjectID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, responses.New(http.StatusOK, res))
 }
+
+func (r *ReceiptHandler) GetDetailReceipt(c *gin.Context) {
+	ctx := c.Request.Context()
+	res, err := r.ReceiptService.GetDetailReceipt(ctx)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, responses.New(http.StatusOK, res))
+}

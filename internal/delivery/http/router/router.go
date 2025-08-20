@@ -73,26 +73,16 @@ func (a *appRouter) protectedRoutes() {
 
 	receipt := a.V1.Group("/receipt")
 	{
-		receipt.GET("/:project-id", a.handler.receipt.GetReceiptByProjectID)
-		receipt.DELETE("/:receipt-id", a.handler.receipt.OnDelete)
 		receipt.POST("/scan/ocr/:project-id", a.handler.receipt.ScanOcr)
 		receipt.POST("/scan/upload/:project-id", a.handler.receipt.ScanUpload)
-		receipt.GET("/list", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "receipt list",
-			})
-		})
-		receipt.GET("/detail/:id", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "receipt detail",
-			})
-		})
-
+		receipt.GET("/all/:project-id", a.handler.receipt.GetReceiptByProjectID)
+		receipt.GET("/detail/:receipt-id", a.handler.receipt.GetDetailReceipt)
+		receipt.DELETE("/:receipt-id", a.handler.receipt.OnDelete)
 	}
 
 	project := a.V1.Group("/project")
 	{
-		project.GET("/:project-id", a.handler.project.GetProjectByID)
+		project.GET("/detail/:project-id", a.handler.project.GetProjectByID)
 		project.DELETE("/:id", a.handler.project.SoftDelete)
 		project.GET("/all", a.handler.project.All)
 		project.POST("/create", a.handler.project.CreateNewProject)

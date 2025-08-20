@@ -42,10 +42,11 @@ func (p *ProjectRepository) CheckExistProject(ctx context.Context) error {
 	return nil
 }
 
-func (p *ProjectRepository) GetProjectByID(ctx context.Context, projectId string) (result *models.Project, err error) {
+func (p *ProjectRepository) GetProjectByID(ctx context.Context) (result *models.Project, err error) {
+	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
 	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	var project *models.Project
-	res := p.db.First(&project, "id = ? AND user_id = ?", uuid.MustParse(projectId), userId)
+	res := p.db.First(&project, "id = ? AND user_id = ?", projectId, userId)
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {

@@ -2,8 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/http"
 	"strukit-services/internal/models"
 	appContext "strukit-services/pkg/context"
+	"strukit-services/pkg/responses"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -45,6 +49,20 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 	}
 
 	return data, nil
+}
+
+func (r *ReceiptRepository) GetDetailReceipt(ctx context.Context) (receipts *models.Receipt, err error) {
+	receiptId := ctx.Value(appContext.ReceiptIDKey).(uuid.UUID)
+	query := r.db.Model(&models.Receipt{}).WithContext(ctx)
+
+	if err = query.Where("id = ?", receiptId).First(&receipts).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, responses.Err(http.StatusNotFound, fmt.Sprintf("not found receipt with id %s", receiptId))
+		}
+		return nil, err
+	}
+
+	return
 }
 
 func (r *ReceiptRepository) GetReceiptByProjectID(ctx context.Context) (receipts []*models.Receipt, err error) {

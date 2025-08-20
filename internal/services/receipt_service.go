@@ -29,6 +29,14 @@ type ReceiptService struct {
 	DuplicateDetectionService *DuplicateDetectionService
 }
 
+func (r *ReceiptService) GetDetailReceipt(ctx context.Context) (receipt *models.Receipt, err error) {
+	if receipt, err = r.ReceiptRepository.GetDetailReceipt(ctx); err != nil {
+		return nil, fmt.Errorf("[main.(*ReceiptService).GetDetailReceipt] error when get receipt %w", err)
+	}
+
+	return receipt, nil
+}
+
 func (r *ReceiptService) GetReceiptByProjectID(ctx context.Context) (receipts []*models.Receipt, err error) {
 	if receipts, err = r.ReceiptRepository.GetReceiptByProjectID(ctx); err != nil {
 		return nil, fmt.Errorf("[main.(*ReceiptService).GetReceiptByProjectID] error when get receipt %w", err)
