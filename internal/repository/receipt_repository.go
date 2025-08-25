@@ -53,7 +53,9 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 
 func (r *ReceiptRepository) GetDetailReceipt(ctx context.Context) (receipts *models.Receipt, err error) {
 	receiptId := ctx.Value(appContext.ReceiptIDKey).(uuid.UUID)
-	query := r.db.Model(&models.Receipt{}).WithContext(ctx)
+	query := r.db.WithContext(ctx).Preload("Items", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, receipt_id, item_name, quantity, unit_price, total_price, discount_amount")
+	})
 
 	if err = query.Where("id = ?", receiptId).First(&receipts).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -67,7 +69,9 @@ func (r *ReceiptRepository) GetDetailReceipt(ctx context.Context) (receipts *mod
 
 func (r *ReceiptRepository) GetReceiptByProjectID(ctx context.Context) (receipts []*models.Receipt, err error) {
 	projectId := ctx.Value(appContext.ProjectID).(uuid.UUID)
-	query := r.db.Model(&models.Receipt{}).WithContext(ctx)
+	query := r.db.WithContext(ctx).Model(&models.Receipt{}).Preload("Items", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, receipt_id, item_name, quantity, unit_price, total_price, discount_amount")
+	})
 
 	if err = query.Where("project_id = ?", projectId).Find(&receipts).Error; err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql/driver"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ func (b *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 
 type OnlyTime time.Time
 
-func (ot *OnlyTime) Scan(value interface{}) error {
+func (ot *OnlyTime) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -56,7 +57,37 @@ func (ot *OnlyTime) Scan(value interface{}) error {
 }
 
 func (ot OnlyTime) Value() (driver.Value, error) {
+	if time.Time(ot).IsZero() {
+		return nil, nil
+	}
+
 	return time.Time(ot).Format("15:04:05"), nil
+}
+
+func (ot OnlyTime) MarshalJSON() ([]byte, error) {
+	if time.Time(ot).IsZero() {
+		return []byte("null"), nil
+	}
+	return fmt.Appendf(nil, `"%s"`, ot.Format()), nil
+}
+
+func (ot *OnlyTime) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		return nil
+	}
+
+	str := strings.Trim(string(data), `"`)
+	if str == "" {
+		return nil
+	}
+
+	parsed, err := time.Parse("15:04:05", str)
+	if err != nil {
+		return err
+	}
+
+	*ot = OnlyTime(parsed)
+	return nil
 }
 
 func (ot OnlyTime) Format() string {

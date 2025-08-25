@@ -19,7 +19,6 @@ type ReceiptItem struct {
 	Category       *string `json:"category,omitempty"`
 	DiscountAmount float64 `json:"discount_amount"`
 
-	LineNumber *int      `json:"line_number,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
+	LineNumber *int       `json:"line_number,omitempty"`
+	CreatedAt  *time.Time `json:"created_at,omitempty"`
 }
-	
