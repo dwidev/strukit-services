@@ -5,6 +5,19 @@ import (
 	"time"
 )
 
+func ParseToRFC3339(value *string) *time.Time {
+	if value == nil {
+		return nil
+	}
+
+	time, err := time.Parse(time.RFC3339, *value)
+	if err != nil {
+		panic(fmt.Sprintf("error parse data from %s", *value))
+	}
+
+	return &time
+}
+
 func ParseToDate(value *string) *time.Time {
 	if value == nil {
 		return nil

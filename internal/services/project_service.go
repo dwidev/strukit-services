@@ -5,6 +5,7 @@ import (
 	"strukit-services/internal/dto"
 	"strukit-services/internal/models"
 	"strukit-services/internal/repository"
+	"strukit-services/pkg/responses"
 )
 
 func NewProject(projectRepo *repository.ProjectRepository) *ProjectService {
@@ -43,6 +44,10 @@ func (a *ProjectService) SoftDelete(ctx context.Context, projectID string) (err 
 
 func (a *ProjectService) CreateNewProject(ctx context.Context, dto *dto.CreateProjectDto) (token *models.Project, err error) {
 	newProject := dto.Model()
+	if newProject.StartDate.Before(*a.Now()) {
+		return nil, responses.DateLessThanToday
+	}
+
 	project, err := a.ProjectRepository.CreateNewProject(ctx, newProject)
 	if err != nil {
 		return nil, err

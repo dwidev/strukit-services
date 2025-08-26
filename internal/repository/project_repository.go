@@ -57,7 +57,7 @@ func (p *ProjectRepository) GetProjectByID(ctx context.Context) (result *models.
 	}
 
 	if res.RowsAffected == 0 {
-		return nil, responses.Forbidden()
+		return nil, responses.AppForbidden
 	}
 
 	return project, nil
@@ -85,7 +85,7 @@ func (p *ProjectRepository) SoftDelete(ctx context.Context, projectID string) (e
 
 	if result.RowsAffected == 0 {
 		logger.Log.DB(ctx).Warnf("delete project error, not match user_id:%s and project_id:%s", userId, projectID)
-		return responses.Forbidden()
+		return responses.AppForbidden
 	}
 
 	return nil
