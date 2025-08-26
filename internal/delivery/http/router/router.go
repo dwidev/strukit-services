@@ -88,6 +88,12 @@ func (a *appRouter) protectedRoutes() {
 		project.POST("/create", a.handler.project.CreateNewProject)
 	}
 
+	budget := project.Group(":project-id")
+	{
+		budget.GET("/budget/summary", a.handler.project.GetBudgetSummary)
+		budget.GET("/budget/details", a.handler.project.GetBudgetDetails)
+	}
+
 	report := a.V1.Group("/report")
 	{
 

@@ -33,16 +33,18 @@ func Bootstrap(cfg *BootstrapConfig) func() {
 	userRepo := repository.NewUser(baseRepo)
 	projectRepo := repository.NewProject(baseRepo)
 	receiptRepo := repository.NewReceipt(baseRepo)
+	budgetRepo := repository.NewBudget(baseRepo)
 
 	// SERVICE
 	authService := services.NewAuth(token, userRepo)
 	projectService := services.NewProject(projectRepo)
 	duplicateDetectionService := services.NewDuplicateDetectionService(receiptRepo)
 	receiptService := services.NewReceipt(llm, receiptRepo, projectRepo, duplicateDetectionService)
+	budgetService := services.NewBudget(budgetRepo)
 
 	// HANDLER
 	authHandler := http.NewAuth(authService)
-	projectHandler := http.NewProject(baseHandler, projectService)
+	projectHandler := http.NewProject(baseHandler, projectService, budgetService)
 	receiptHandler := http.NewReceipt(receiptService)
 
 	// ROUTE HANDLER
