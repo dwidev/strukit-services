@@ -58,14 +58,12 @@ func (b *BudgetRepository) GetBudgetSummary(ctx context.Context) (*dto.BudgetTra
 	spentPercentage = math.Round((*totalSpent / project.TotalBudget) * 100)
 	bs := b.determineBudgetStatus(&project, int(spentPercentage))
 	remainingDays := int(project.EndDate.Sub(*b.DateNow()).Hours() / 24)
-	dailyBurnRate := *totalSpent / float64(receipt.Items)
 
 	budget := &dto.BudgetTrackingResponse{
 		UserID:          userId,
 		ProjectID:       projectId,
 		BudgetAmount:    project.TotalBudget,
 		TotalSpent:      *totalSpent,
-		DailyBurnRate:   dailyBurnRate,
 		RemainingDays:   remainingDays,
 		RemainingBudget: remainingBudget,
 		SpentPercentage: spentPercentage,
@@ -82,56 +80,45 @@ func (b *BudgetRepository) GetBudgetDetails(ctx context.Context, filter *dto.Bud
 		return nil, err
 	}
 
-	dailySpending, err := b.GetBudgetSpending(ctx)
+	spending, err := b.GetBudgetSpending(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
 	summary.Spending = &dto.BudgetSpending{
 		Type: filter.Type,
-		Data: &dailySpending,
+		Data: &spending,
 	}
 	budget := summary
 
-	b.buildBudgetProjection(summary)
+	b.buildBurnRate(summary)
+	b.buildBudgetProjection(filter, summary)
 
 	return budget, nil
 }
 
-func (b *BudgetRepository) GetBudgetSpending(ctx context.Context, filter ...dto.BudgetFilterRequest) ([]dto.BudgetSpendingData, error) {
-	var request *dto.BudgetFilterRequest
-	if len(filter) == 0 {
-		request = &dto.BudgetFilterRequest{
-			Type: dto.Daily,
-		}
+func (b *BudgetRepository) GetBudgetSpending(ctx context.Context, filter ...*dto.BudgetFilterRequest) ([]dto.BudgetSpendingData, error) {
+	request := &dto.BudgetFilterRequest{
+		Type: dto.Daily,
 	}
 
-	var q string = `
-		SELECT 
-			DATE(r.created_at) as date,
-			COALESCE(SUM(r.total_amount), 0) as total_amount,
-			COUNT(r.*) as total_receipt,
-			AVG(r.total_amount) as average FROM receipts as r
-		WHERE r.project_id = ? AND r.user_id = ?
-		GROUP BY DATE(r.created_at)
-		order by date
-	`
-
-	if request.Type == dto.Weekly {
-		q = `
-		SELECT 
-			DATE(r.created_at) as date,
-			COALESCE(SUM(r.total_amount), 0) as total_amount,
-			COUNT(r.*) as total_receipt,
-			AVG(r.total_amount) as average FROM receipts as r
-		WHERE r.project_id = ? AND r.user_id = ?
-		GROUP BY DATE(r.created_at)
-		order by date
-	`
+	if len(filter) > 0 {
+		request = filter[0]
 	}
 
+	q := `
+		select 
+			date_trunc(?, r.created_at) as date,
+			round(coalesce(SUM(r.total_amount), 0), 2) as total_amount,
+			count(r.id) total_receipt,
+			round(avg(total_amount), 2) as average
+		from receipts r 
+		where r.project_id = ? AND r.user_id = ?
+		group by date 
+		order by date 
+	`
 	var spending []dto.BudgetSpendingData
-	if err := b.db.Raw(q, b.ProjectID(ctx), b.UserID(ctx)).Find(&spending).Error; err != nil {
+	if err := b.db.Raw(q, request.Filter(), b.ProjectID(ctx), b.UserID(ctx)).Find(&spending).Error; err != nil {
 		return nil, fmt.Errorf("[BudgetRepository.GetBudgetSpending] error get daily spends, err : %s", err)
 	}
 
@@ -150,9 +137,8 @@ func (b *BudgetRepository) determineBudgetStatus(project *models.Project, spentP
 	return budget.Healthty
 }
 
-// method for create budget projections
-func (b *BudgetRepository) buildBudgetProjection(budget *dto.BudgetTrackingResponse) {
-	if budget.Spending.Data == nil || len(*budget.Spending.Data) < 2 {
+func (b *BudgetRepository) buildBurnRate(budget *dto.BudgetTrackingResponse) {
+	if budget.Spending == nil {
 		return
 	}
 
@@ -161,12 +147,32 @@ func (b *BudgetRepository) buildBudgetProjection(budget *dto.BudgetTrackingRespo
 		allSpend += d.TotalAmount
 	}
 
-	dailyBurnRate := allSpend / float64(len(*budget.Spending.Data))
-	remaining := int(budget.RemainingBudget / dailyBurnRate)
+	burnRate := allSpend / float64(len(*budget.Spending.Data))
+	budget.BurnRate = burnRate
+}
+
+// method for create budget projections
+func (b *BudgetRepository) buildBudgetProjection(filter *dto.BudgetFilterRequest, budget *dto.BudgetTrackingResponse) {
+	if budget.Spending.Data == nil || len(*budget.Spending.Data) < 2 {
+		return
+	}
+
+	burnRate := budget.BurnRate
+	remaining := int(budget.RemainingBudget / burnRate)
+
 	estimed := b.DateNow().AddDate(0, 0, remaining)
 
+	if filter.Weekly() {
+		estimed = b.DateNow().AddDate(0, 0, 7*remaining)
+	}
+
+	if filter.Yearly() {
+		estimed = b.DateNow().AddDate(0, 0, 365*remaining)
+	}
+
 	budget.Projections = &dto.BudgetProjection{
-		DailyBurnRate:              dailyBurnRate,
+		Type:                       filter.Type,
+		BurnRate:                   burnRate,
 		RemainingEstimedCompletion: remaining,
 		EstimedCompletionDate:      estimed,
 	}
