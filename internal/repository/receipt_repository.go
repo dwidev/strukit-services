@@ -29,15 +29,33 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 		data.ProjectID = ctx.Value(appContext.ProjectID).(uuid.UUID)
 
 		items := data.Items
-		data.Items = nil
-		if err := tx.WithContext(ctx).Save(data).Error; err != nil {
+		data.Items = nil 
+		if err := tx.Save(data).Error; err != nil {
 			return err
 		}
 
 		if len(items) > 0 {
-			if err := tx.WithContext(ctx).CreateInBatches(items, len(items)).Error; err != nil {
+			if err := tx.CreateInBatches(items, len(items)).Error; err != nil {
 				return err
 			}
+		}
+
+		if data.Category != nil {
+			var category *models.Category
+			cat := data.Category.Name
+			if err := tx.First(&category, "name = ?", cat).Error; err != nil {
+				return err
+			}
+
+			if category == nil {
+				newCat := &models.Category{
+					Name: cat,
+				}
+				if err := tx.Create(newCat).Error; err != nil {
+					return err
+				}
+			}
+
 		}
 
 		data.Items = items
@@ -55,6 +73,9 @@ func (r *ReceiptRepository) GetDetailReceipt(ctx context.Context) (receipts *mod
 	receiptId := ctx.Value(appContext.ReceiptIDKey).(uuid.UUID)
 	query := r.db.WithContext(ctx).Preload("Items", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id, receipt_id, item_name, quantity, unit_price, total_price, discount_amount")
+	})
+	query.Preload("Category", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, name, color")
 	})
 
 	if err = query.Where("id = ?", receiptId).First(&receipts).Error; err != nil {

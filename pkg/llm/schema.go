@@ -34,8 +34,8 @@ func (m Manager) StructuredOutput() *genai.Schema {
 			},
 			"category": {
 				Type:        genai.TypeString,
-				Description: "Category or type of receipt purpose (e.g., Belanja, Transport, Komsumsi)",
-				Example:     "Belanja, Transport, Komsumsi",
+				Description: "Category or type of receipt purpose",
+				Example:     "Makanan & Minuman, Transportasi, Belanja, Kesehatan, Tagihan & Utilitas, Hiburan, Pendidikan, Bisnis, Perawatan Pribadi, Lainnya.",
 			},
 			"addressShop": {
 				Type:        genai.TypeString,
@@ -47,8 +47,8 @@ func (m Manager) StructuredOutput() *genai.Schema {
 			},
 			"date": {
 				Type:        genai.TypeString,
-				Description: "Transaction date and time in format 2025-08-15",
-				Example:     "2025-08-15T1+07:00",
+				Description: "Transaction date in format 2025-08-15",
+				Example:     "2025-08-15",
 			},
 			"time": {
 				Type:        genai.TypeString,

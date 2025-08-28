@@ -39,7 +39,7 @@ func (b *BaseRepository) Transaction(ctx context.Context, fn func(tx *gorm.DB) e
 		}
 	}()
 
-	if err := fn(tx); err != nil {
+	if err := fn(tx.WithContext(ctx)); err != nil {
 		if re := tx.Rollback().Error; re != nil {
 			return fmt.Errorf("transaction failed: %v, rollback failed: %w", err, re)
 		}

@@ -8,8 +8,9 @@ import (
 
 type Receipt struct {
 	BaseModel
-	UserID    uuid.UUID `json:"user_id"`
-	ProjectID uuid.UUID `json:"project_id,"`
+	UserID     uuid.UUID `json:"user_id"`
+	ProjectID  uuid.UUID `json:"project_id"`
+	CategoryID uuid.UUID `json:"category_id"`
 
 	// Extracted Data
 	ReceiptNumber   *string   `json:"receiptNumber"`
@@ -36,5 +37,6 @@ type Receipt struct {
 	Fingerprint string `json:"fingerprint"`
 	ContentHash string `json:"contentHash"`
 
-	Items []*ReceiptItem `gorm:"foreignKey:ReceiptID;" json:"items"`
+	Items    []*ReceiptItem `gorm:"foreignKey:ReceiptID;" json:"items"`
+	Category *Category      `gorm:"foreignKey:CategoryID;" json:"category"`
 }

@@ -105,5 +105,8 @@ func (rr *ReceiptResponse) Model() *models.Receipt {
 		Fingerprint:          "",
 		ContentHash:          "",
 		Items:                items,
+		Category: &models.Category{
+			Name: *rr.Category,
+		},
 	}
 }
