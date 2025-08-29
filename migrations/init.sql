@@ -37,7 +37,7 @@ CREATE TABLE projects (
 
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     icon VARCHAR(50),
     color VARCHAR(7), -- hex color code
     is_default BOOLEAN DEFAULT FALSE,

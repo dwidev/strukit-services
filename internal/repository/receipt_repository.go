@@ -29,19 +29,10 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 		data.ProjectID = ctx.Value(appContext.ProjectID).(uuid.UUID)
 
 		items := data.Items
-		data.Items = nil 
-		if err := tx.Save(data).Error; err != nil {
-			return err
-		}
+		data.Items = nil
 
-		if len(items) > 0 {
-			if err := tx.CreateInBatches(items, len(items)).Error; err != nil {
-				return err
-			}
-		}
-
+		var category *models.Category
 		if data.Category != nil {
-			var category *models.Category
 			cat := data.Category.Name
 			if err := tx.First(&category, "name = ?", cat).Error; err != nil {
 				return err
@@ -55,7 +46,22 @@ func (r *ReceiptRepository) Save(ctx context.Context, data *models.Receipt) (*mo
 					return err
 				}
 			}
+		}
 
+		data.Category = category
+		data.CategoryID = category.ID
+		if category == nil {
+			data.CategoryID = models.DefaultCategory
+		}
+
+		if err := tx.Omit("Items", "Category").Save(data).Error; err != nil {
+			return err
+		}
+
+		if len(items) > 0 {
+			if err := tx.CreateInBatches(items, len(items)).Error; err != nil {
+				return err
+			}
 		}
 
 		data.Items = items
