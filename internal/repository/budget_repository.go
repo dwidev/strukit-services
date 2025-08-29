@@ -21,6 +21,27 @@ type BudgetRepository struct {
 	*BaseRepository
 }
 
+func (b *BudgetRepository) GetBudgetByCategories(ctx context.Context) ([]dto.CategoryBudgetResponse, error) {
+	q := `
+		select 
+			c."name",
+			round(coalesce(SUM(r.total_amount), 0), 2) as total_spent, 
+			round(coalesce(avg(r.total_amount), 0), 2) as average_spent,
+			round(coalesce(max(r.total_amount), 0), 2) as max_spent,
+			round(coalesce(min(r.total_amount), 0), 2) as min_spent
+		from categories c
+		left join receipts r on c.id = r.category_id
+		and r.project_id = 'fdb27295-149d-4c1b-a9eb-ea2f62dccbc8'
+		group by c."name"
+	`
+	var category []dto.CategoryBudgetResponse
+	if err := b.db.Raw(q, b.ProjectID(ctx), b.UserID(ctx)).Find(&category).Error; err != nil {
+		return nil, fmt.Errorf("[BudgetRepository.GetBudgetSpending] error get daily spends, err : %s", err)
+	}
+
+	return category, nil
+}
+
 func (b *BudgetRepository) GetBudgetSummary(ctx context.Context) (*dto.BudgetTrackingResponse, error) {
 	projectId := b.ProjectID(ctx)
 	userId := b.UserID(ctx)
