@@ -7,6 +7,7 @@ import (
 	"strukit-services/internal/dto"
 	"strukit-services/internal/models"
 	"strukit-services/pkg/budget"
+	"strukit-services/pkg/helper"
 
 	"gorm.io/gorm"
 )
@@ -24,18 +25,21 @@ type BudgetRepository struct {
 func (b *BudgetRepository) GetBudgetByCategories(ctx context.Context) ([]dto.CategoryBudgetResponse, error) {
 	q := `
 		select 
+			c.id,
 			c."name",
+			count(r.id) as total_receipt,
 			round(coalesce(SUM(r.total_amount), 0), 2) as total_spent, 
 			round(coalesce(avg(r.total_amount), 0), 2) as average_spent,
-			round(coalesce(max(r.total_amount), 0), 2) as max_spent,
-			round(coalesce(min(r.total_amount), 0), 2) as min_spent
+			round(coalesce(max(r.total_amount), 0), 2) as highest_transaction,
+			round(coalesce(min(r.total_amount), 0), 2) as lowest_transaction
 		from categories c
 		left join receipts r on c.id = r.category_id
-		and r.project_id = 'fdb27295-149d-4c1b-a9eb-ea2f62dccbc8'
-		group by c."name"
+		and r.project_id = ?
+		group by c."name", c.id
+		order by total_spent desc
 	`
 	var category []dto.CategoryBudgetResponse
-	if err := b.db.Raw(q, b.ProjectID(ctx), b.UserID(ctx)).Find(&category).Error; err != nil {
+	if err := b.db.Raw(q, b.ProjectID(ctx)).Find(&category).Error; err != nil {
 		return nil, fmt.Errorf("[BudgetRepository.GetBudgetSpending] error get daily spends, err : %s", err)
 	}
 
@@ -77,19 +81,20 @@ func (b *BudgetRepository) GetBudgetSummary(ctx context.Context) (*dto.BudgetTra
 
 	remainingBudget = math.Round(project.TotalBudget - *totalSpent)
 	spentPercentage = math.Round((*totalSpent / project.TotalBudget) * 100)
-	bs := b.determineBudgetStatus(&project, int(spentPercentage))
 	remainingDays := int(project.EndDate.Sub(*b.DateNow()).Hours() / 24)
 
+	projectStatusWording := b.getProjectBudgetStatusWording(&project, *totalSpent)
+
 	budget := &dto.BudgetTrackingResponse{
-		UserID:          userId,
-		ProjectID:       projectId,
-		BudgetAmount:    project.TotalBudget,
-		TotalSpent:      *totalSpent,
-		RemainingDays:   remainingDays,
-		RemainingBudget: remainingBudget,
-		SpentPercentage: spentPercentage,
-		BudgetStatus:    bs,
-		Receipts:        receipt,
+		UserID:               userId,
+		ProjectID:            projectId,
+		BudgetAmount:         project.TotalBudget,
+		TotalSpent:           *totalSpent,
+		ProjectStatusWording: projectStatusWording,
+		RemainingDays:        remainingDays,
+		RemainingBudget:      remainingBudget,
+		SpentPercentage:      spentPercentage,
+		Receipts:             receipt,
 	}
 
 	return budget, nil
@@ -106,6 +111,12 @@ func (b *BudgetRepository) GetBudgetDetails(ctx context.Context, filter *dto.Bud
 		return nil, err
 	}
 
+	categories, err := b.GetBudgetByCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	summary.Categories = categories
 	summary.Spending = &dto.BudgetSpending{
 		Type: filter.Type,
 		Data: &spending,
@@ -146,16 +157,118 @@ func (b *BudgetRepository) GetBudgetSpending(ctx context.Context, filter ...*dto
 	return spending, nil
 }
 
-func (b *BudgetRepository) determineBudgetStatus(project *models.Project, spentPercentage int) budget.Status {
-	if spentPercentage > 100 {
-		return budget.OverBudget
+func (b *BudgetRepository) determineBudgetStatus(project *models.Project, totalSpent float64) budget.Status {
+	usageRatio := math.Round((totalSpent/project.TotalBudget)*10) / 10
+
+	if usageRatio >= 0.90 {
+		return budget.Critical
 	}
 
-	if b.Now().After(*project.EndDate) {
-		return budget.Completed
+	if usageRatio > 0.75 {
+		return budget.Warning
 	}
 
-	return budget.Healthty
+	if usageRatio > 0.50 {
+		return budget.Caution
+	}
+
+	return budget.OnTrack
+}
+
+// getProjectBudgetStatusWording returns overall project budget status wording
+func (b *BudgetRepository) getProjectBudgetStatusWording(project *models.Project, totalSpent float64) dto.ProjectStatusWording {
+	totalBudget := project.TotalBudget
+	status := project.Status
+
+	spentPercentage := (totalSpent / totalBudget) * 100
+	remainingBudget := totalBudget - totalSpent
+
+	budgetStatus := b.determineBudgetStatus(project, totalSpent)
+
+	wording := dto.ProjectStatusWording{
+		Status:       status,
+		BudgetStatus: budgetStatus,
+	}
+
+	switch status {
+	case models.ProjectStatusOver:
+		overAmount := totalSpent - totalBudget
+		wording.Title = "🚨 Budget Terlampaui"
+		wording.Message = fmt.Sprintf("Total pengeluaran melebihi budget sebesar %s (%.1f%% dari budget)", helper.ParseToIDR(overAmount), spentPercentage)
+		wording.ActionMessage = "Segera evaluasi pengeluaran dan pertimbangkan penambahan budget atau pengurangan scope"
+		wording.Severity = "critical"
+		wording.Color = "#D32F2F"
+
+	case models.ProjectStatusActive:
+		switch budgetStatus {
+		case budget.Critical:
+			wording.Title = "⚠️ Budget Hampir Habis"
+			wording.Message = fmt.Sprintf("Sudah menggunakan %.1f%% budget. Tersisa %s", spentPercentage, helper.ParseToIDR(remainingBudget))
+			wording.ActionMessage = "Kontrol ketat pengeluaran selanjutnya"
+			wording.Severity = "high"
+			wording.Color = "#FF5722"
+
+		case budget.Warning:
+			wording.Title = "🟡 Perhatian Budget"
+			wording.Message = fmt.Sprintf("Sudah menggunakan %.1f%% budget. Tersisa %.0f",
+				spentPercentage, remainingBudget)
+			wording.ActionMessage = "Monitor pengeluaran dengan cermat"
+			wording.Severity = "medium"
+			wording.Color = "#FF9800"
+
+		case budget.Caution:
+			wording.Title = "📊 Budget Berjalan Normal"
+			wording.Message = fmt.Sprintf("Sudah menggunakan %.1f%% budget. Tersisa %s", spentPercentage, helper.ParseToIDR(remainingBudget))
+			wording.ActionMessage = "Pertahankan pola pengeluaran saat ini"
+			wording.Severity = "low"
+			wording.Color = "#4CAF50"
+
+		default:
+			wording.Title = "💚 Budget Aman"
+			wording.Message = fmt.Sprintf("Baru menggunakan %d%% budget. Tersisa %s", int(spentPercentage), helper.ParseToIDR(remainingBudget))
+			wording.ActionMessage = "Budget masih sangat aman untuk pengeluaran selanjutnya"
+			wording.Severity = "info"
+			wording.Color = "#2196F3"
+		}
+
+	case models.ProjectStatusCompleted:
+		if spentPercentage <= 100 {
+			wording.Title = "🎉 Project Selesai - Budget Terkontrol"
+			wording.Message = fmt.Sprintf("Project selesai dengan menggunakan %.1f%% budget (%s)", spentPercentage, helper.ParseToIDR(totalSpent))
+			wording.ActionMessage = "Sisa budget bisa digunakan untuk project lain"
+		} else {
+			overAmount := totalSpent - totalBudget
+			wording.Title = "⚠️ Project Selesai - Over Budget"
+			wording.Message = fmt.Sprintf("Project selesai dengan over budget %s (%.1f%% dari budget)", helper.ParseToIDR(overAmount), spentPercentage)
+			wording.ActionMessage = "Evaluasi penyebab over budget untuk project selanjutnya"
+		}
+		wording.Severity = "info"
+		wording.Color = "#9C27B0"
+
+	case models.ProjectStatusArchived:
+		wording.Title = "⏸️ Project Ditangguhkan"
+		wording.Message = fmt.Sprintf("Project ditangguhkan dengan penggunaan budget %.1f%% (Rp %.0f)",
+			spentPercentage, totalSpent)
+		wording.ActionMessage = "Project dapat dilanjutkan kapan saja"
+		wording.Severity = "info"
+		wording.Color = "#607D8B"
+
+	case models.ProjectStatusDeleted:
+		wording.Title = "⛔️ Project Dihapus"
+		wording.Message = fmt.Sprintf("Project dihapus dengan penggunaan budget %.1f%% (%s)", spentPercentage, helper.ParseToIDR(totalSpent))
+		wording.ActionMessage = fmt.Sprintf("Project akan lenyap pada tanggal %s", project.DeletedAt.AddDate(0, 0, 15))
+		wording.Severity = "info"
+		wording.Color = "#FEF4444"
+
+	default:
+		wording.Title = "📊 Status Budget"
+		wording.Message = "Status budget tidak diketahui"
+		wording.ActionMessage = ""
+		wording.Severity = "info"
+		wording.Color = "#9E9E9E"
+	}
+
+	return wording
 }
 
 func (b *BudgetRepository) buildBurnRate(budget *dto.BudgetTrackingResponse) {

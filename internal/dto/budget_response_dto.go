@@ -1,29 +1,26 @@
 package dto
 
 import (
-	"strukit-services/pkg/budget"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type BudgetTrackingResponse struct {
-	UserID          uuid.UUID     `json:"userId"`
-	ProjectID       uuid.UUID     `json:"projectId"`
-	BudgetAmount    float64       `json:"budgetAmount"`
-	TotalSpent      float64       `json:"totalSpent"`
-	BurnRate        float64       `json:"BurnRate,omitempty"`
-	RemainingDays   int           `json:"remainingDays"`
-	RemainingBudget float64       `json:"remainingBudget"`
-	SpentPercentage float64       `json:"spentPercentage"`
-	BudgetStatus    budget.Status `json:"budgetStatus"`
-	Receipts        BudgetReceipt `json:"total"`
-	// AlertLevel      string        `json:"alertLevel"`
-	// CategoryBreakdown []CategorySpending `json:"category_breakdown"`
-	Spending    *BudgetSpending   `json:"spending,omitempty"`
-	Projections *BudgetProjection `json:"projections,omitempty"`
-	// Alert       []BudgetAlert `json:"alerts"`
-	LastUpdated *time.Time `json:"lastUpdated,omitempty"`
+	UserID               uuid.UUID                `json:"userId"`
+	ProjectID            uuid.UUID                `json:"projectId"`
+	BudgetAmount         float64                  `json:"budgetAmount"`
+	TotalSpent           float64                  `json:"totalSpent"`
+	BurnRate             float64                  `json:"BurnRate,omitempty"`
+	RemainingDays        int                      `json:"remainingDays"`
+	RemainingBudget      float64                  `json:"remainingBudget"`
+	SpentPercentage      float64                  `json:"spentPercentage"`
+	Receipts             BudgetReceipt            `json:"total"`
+	Categories           []CategoryBudgetResponse `json:"categories"`
+	Spending             *BudgetSpending          `json:"spending,omitempty"`
+	ProjectStatusWording ProjectStatusWording     `json:"projectStatus"`
+	Projections          *BudgetProjection        `json:"projections,omitempty"`
+	LastUpdated          *time.Time               `json:"lastUpdated,omitempty"`
 }
 
 type BudgetReceipt struct {

@@ -95,7 +95,7 @@ func (p *ProjectRepository) CreateNewProject(ctx context.Context, project *model
 	userId := ctx.Value(appContext.UserIDKey).(uuid.UUID)
 	status := models.ProjectStatusActive
 	project.UserID = userId
-	project.Status = &status
+	project.Status = status
 	if err = p.db.Create(project).Error; err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
 			return nil, responses.Err(http.StatusConflict, fmt.Sprintf("Project with name %s already exist, please create different project name", project.Name))

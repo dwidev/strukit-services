@@ -3,8 +3,8 @@ package budget
 type Status string
 
 const (
-	Healthty   Status = "healthty"
-	Completed  Status = "completed"
-	OverBudget Status = "overbudget"
-	Suspended  Status = "suspended"
+	OnTrack  Status = "ontrack"  // <= 50% usage
+	Warning  Status = "warning"  // >= 50% usage
+	Caution  Status = "caution"  // >= 10% usage
+	Critical Status = "critical" // >= 90% usage
 )

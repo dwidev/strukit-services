@@ -10,15 +10,15 @@ import (
 
 type Project struct {
 	BaseModel
-	UserID       uuid.UUID      `json:"userID"`
-	Name         string         `json:"name"`
-	Description  string         `json:"description"`
-	TotalBudget  float64        `json:"totalBudget"`
-	StartDate    *time.Time     `json:"startDate"`
-	EndDate      *time.Time     `json:"endDate"`
-	Status       *ProjectStatus `json:"status"`
-	IsSoftDelete bool           `json:"isSoftDelete"`
-	DeletedAt    *time.Time     `json:"deletedAt"`
+	UserID       uuid.UUID     `json:"userID"`
+	Name         string        `json:"name"`
+	Description  string        `json:"description"`
+	TotalBudget  float64       `json:"totalBudget"`
+	StartDate    *time.Time    `json:"startDate"`
+	EndDate      *time.Time    `json:"endDate"`
+	Status       ProjectStatus `json:"status"`
+	IsSoftDelete bool          `json:"isSoftDelete"`
+	DeletedAt    *time.Time    `json:"deletedAt"`
 
 	User *User `gorm:"foriegnKey:UserID;" json:"user,omitempty"`
 }
@@ -27,6 +27,7 @@ type ProjectStatus string
 
 const (
 	ProjectStatusActive    ProjectStatus = "active"
+	ProjectStatusOver      ProjectStatus = "overrun"
 	ProjectStatusCompleted ProjectStatus = "completed"
 	ProjectStatusArchived  ProjectStatus = "archived"
 	ProjectStatusDeleted   ProjectStatus = "deleted"
