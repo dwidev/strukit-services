@@ -11,7 +11,7 @@ type BudgetTrackingResponse struct {
 	ProjectID            uuid.UUID                `json:"projectId"`
 	BudgetAmount         float64                  `json:"budgetAmount"`
 	TotalSpent           float64                  `json:"totalSpent"`
-	BurnRate             float64                  `json:"BurnRate,omitempty"`
+	BurnRate             float64                  `json:"burnRate"`
 	RemainingDays        int                      `json:"remainingDays"`
 	RemainingBudget      float64                  `json:"remainingBudget"`
 	SpentPercentage      float64                  `json:"spentPercentage"`
@@ -29,8 +29,8 @@ type BudgetReceipt struct {
 }
 
 type BudgetSpending struct {
-	Type SpendingType          `json:"type"`
-	Data *[]BudgetSpendingData `json:"data"`
+	Type SpendingType         `json:"type"`
+	Data []BudgetSpendingData `json:"data"`
 }
 
 type BudgetSpendingData struct {

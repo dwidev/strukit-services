@@ -8,7 +8,9 @@ import (
 	"strukit-services/internal/models"
 	"strukit-services/pkg/budget"
 	"strukit-services/pkg/helper"
+	"strukit-services/pkg/logger"
 
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -61,7 +63,7 @@ func (b *BudgetRepository) GetBudgetSummary(ctx context.Context) (*dto.BudgetTra
 			return fmt.Errorf("[BudgetRepository.GetBudgetProjectDetails] error get total budget & status, err : %s", err)
 		}
 
-		if err := tx.Model(models.Receipt{}).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalSpent).Error; err != nil {
+		if err := tx.Model(models.Receipt{}).Select("COALESCE(SUM(total_amount), 0)").Where("id = ? AND user_id = ?", projectId, userId).Scan(&totalSpent).Error; err != nil {
 			return fmt.Errorf("[BudgetRepository.GetBudgetProjectDetails] error get total spend, err : %s", err)
 		}
 
@@ -101,30 +103,57 @@ func (b *BudgetRepository) GetBudgetSummary(ctx context.Context) (*dto.BudgetTra
 }
 
 func (b *BudgetRepository) GetBudgetDetails(ctx context.Context, filter *dto.BudgetFilterRequest) (*dto.BudgetTrackingResponse, error) {
-	summary, err := b.GetBudgetSummary(ctx)
-	if err != nil {
+	type budgetResults struct {
+		summary    *dto.BudgetTrackingResponse
+		spending   []dto.BudgetSpendingData
+		categories []dto.CategoryBudgetResponse
+	}
+
+	results := &budgetResults{}
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		logger.Log.Info("GetBudgetSummary")
+		var err error
+		results.summary, err = b.GetBudgetSummary(ctx)
+		if err != nil {
+			return fmt.Errorf("[BudgetRepository.GetBudgetDetails] error when GetBudgetSummary: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		logger.Log.Info("GetBudgetSpending")
+		var err error
+		results.spending, err = b.GetBudgetSpending(ctx, filter)
+		if err != nil {
+			return fmt.Errorf("[BudgetRepository.GetBudgetDetails] error when GetBudgetSpending: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		logger.Log.Info("GetBudgetByCategories")
+		var err error
+		results.categories, err = b.GetBudgetByCategories(ctx)
+		if err != nil {
+			return fmt.Errorf("[BudgetRepository.GetBudgetDetails] error when GetBudgetByCategories: %w", err)
+		}
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
 
-	spending, err := b.GetBudgetSpending(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	categories, err := b.GetBudgetByCategories(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	summary.Categories = categories
-	summary.Spending = &dto.BudgetSpending{
+	budget := results.summary
+	budget.Categories = results.categories
+	budget.Spending = &dto.BudgetSpending{
 		Type: filter.Type,
-		Data: &spending,
+		Data: results.spending,
 	}
-	budget := summary
 
-	b.buildBurnRate(summary)
-	b.buildBudgetProjection(filter, summary)
+	b.buildBurnRate(budget)
+	b.buildBudgetProjection(filter, budget)
 
 	return budget, nil
 }
@@ -272,22 +301,24 @@ func (b *BudgetRepository) getProjectBudgetStatusWording(project *models.Project
 }
 
 func (b *BudgetRepository) buildBurnRate(budget *dto.BudgetTrackingResponse) {
-	if budget.Spending == nil {
+	if budget.Spending == nil || len(budget.Spending.Data) == 0 {
+		budget.BurnRate = 0
 		return
 	}
 
 	var allSpend float64
-	for _, d := range *budget.Spending.Data {
+	for _, d := range budget.Spending.Data {
 		allSpend += d.TotalAmount
 	}
 
-	burnRate := allSpend / float64(len(*budget.Spending.Data))
+	burnRate := allSpend / float64(len(budget.Spending.Data))
 	budget.BurnRate = burnRate
 }
 
 // method for create budget projections
 func (b *BudgetRepository) buildBudgetProjection(filter *dto.BudgetFilterRequest, budget *dto.BudgetTrackingResponse) {
-	if budget.Spending.Data == nil || len(*budget.Spending.Data) < 2 {
+	if len(budget.Spending.Data) <= 1 {
+		budget.Projections = nil
 		return
 	}
 
