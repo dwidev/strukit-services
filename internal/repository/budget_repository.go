@@ -8,7 +8,6 @@ import (
 	"strukit-services/internal/models"
 	"strukit-services/pkg/budget"
 	"strukit-services/pkg/helper"
-	"strukit-services/pkg/logger"
 
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
@@ -112,7 +111,6 @@ func (b *BudgetRepository) GetBudgetDetails(ctx context.Context, filter *dto.Bud
 	results := &budgetResults{}
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		logger.Log.Info("GetBudgetSummary")
 		var err error
 		results.summary, err = b.GetBudgetSummary(ctx)
 		if err != nil {
@@ -122,7 +120,6 @@ func (b *BudgetRepository) GetBudgetDetails(ctx context.Context, filter *dto.Bud
 	})
 
 	g.Go(func() error {
-		logger.Log.Info("GetBudgetSpending")
 		var err error
 		results.spending, err = b.GetBudgetSpending(ctx, filter)
 		if err != nil {
@@ -132,7 +129,6 @@ func (b *BudgetRepository) GetBudgetDetails(ctx context.Context, filter *dto.Bud
 	})
 
 	g.Go(func() error {
-		logger.Log.Info("GetBudgetByCategories")
 		var err error
 		results.categories, err = b.GetBudgetByCategories(ctx)
 		if err != nil {
