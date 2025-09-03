@@ -58,7 +58,7 @@ func (a *appRouter) protectedRoutes() {
 	a.V1.Use(middleware.Authorization(a.TokenManager))
 	user := a.V1.Group("/user")
 	{
-
+		user.POST("/create/password", a.handler.auth.CreatePassword)
 		user.GET("/profile", func(ctx *gin.Context) {
 			ctx.JSON(200, gin.H{
 				"message": "profile",

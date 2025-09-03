@@ -1,8 +1,11 @@
 package services
 
 import (
+	"context"
+	"fmt"
 	"strukit-services/internal/models"
 	"strukit-services/internal/repository"
+	"strukit-services/pkg/hash"
 	"strukit-services/pkg/logger"
 	"strukit-services/pkg/token"
 	"time"
@@ -17,6 +20,20 @@ func NewAuth(token *token.Manager, userRepo *repository.UserRepository) *AuthSer
 type AuthService struct {
 	tokenManager *token.Manager
 	*repository.UserRepository
+}
+
+func (u *AuthService) CreatePassword(ctx context.Context, password string) (err error) {
+	passwordHash, err := hash.Password(password)
+	if err != nil {
+		return fmt.Errorf("[] error when generate password hash, error : %w", err)
+	}
+
+	err = u.UpdatePasswordByUserID(ctx, passwordHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *AuthService) LoginWithEmail(email string) (token *token.TokenResponse, err error) {

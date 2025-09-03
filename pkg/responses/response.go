@@ -1,6 +1,7 @@
 package responses
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,18 @@ func New(StatusCode int, Message any) *MessageResponse {
 	return &MessageResponse{
 		StatusCode: StatusCode,
 		Message:    Message,
+	}
+}
+
+func Created(resource ...string) *MessageResponse {
+	msg := "Resource has been successfully created"
+	if len(resource) > 0 {
+		msg = fmt.Sprintf("%s has been successfully created", resource[0])
+	}
+
+	return &MessageResponse{
+		StatusCode: http.StatusCreated,
+		Message:    msg,
 	}
 }
 

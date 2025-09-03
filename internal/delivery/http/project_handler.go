@@ -1,6 +1,7 @@
 package http
 
 import (
+	"net/http"
 	"strukit-services/internal/dto"
 	"strukit-services/internal/services"
 	"strukit-services/pkg/responses"
@@ -34,8 +35,8 @@ func (a *ProjectHandler) GetBudgetSummary(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, responses.DataResponse{
-		StatusCode: 200,
+	c.JSON(http.StatusOK, responses.DataResponse{
+		StatusCode: http.StatusOK,
 		Data:       results,
 	})
 }
@@ -60,8 +61,8 @@ func (a *ProjectHandler) GetBudgetDetails(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, responses.DataResponse{
-		StatusCode: 200,
+	c.JSON(http.StatusOK, responses.DataResponse{
+		StatusCode: http.StatusOK,
 		Data:       results,
 	})
 }
@@ -74,8 +75,8 @@ func (a *ProjectHandler) GetProjectByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, responses.DataResponse{
-		StatusCode: 200,
+	c.JSON(http.StatusOK, responses.DataResponse{
+		StatusCode: http.StatusOK,
 		Data:       results,
 	})
 }
@@ -89,8 +90,8 @@ func (a *ProjectHandler) All(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, responses.DataResponse{
-		StatusCode: 200,
+	c.JSON(http.StatusOK, responses.DataResponse{
+		StatusCode: http.StatusOK,
 		Data:       results,
 	})
 }
@@ -111,7 +112,7 @@ func (a *ProjectHandler) SoftDelete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"projectId": projectID,
 		"message":   "Project deleted successfully",
 	})
@@ -138,5 +139,5 @@ func (a *ProjectHandler) CreateNewProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, response)
+	c.JSON(http.StatusOK, response)
 }

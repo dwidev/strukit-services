@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"strukit-services/internal/models"
 	"strukit-services/pkg/logger"
 
@@ -16,6 +18,16 @@ func NewUser(base *BaseRepository) *UserRepository {
 
 type UserRepository struct {
 	*BaseRepository
+}
+
+func (u *UserRepository) UpdatePasswordByUserID(ctx context.Context, password string) (err error) {
+	uId := u.UserID(ctx)
+	res := u.db.Update("password_hash", password).Where("id = ?", uId)
+	if err = res.Error; err != nil {
+		return fmt.Errorf("[UserRepository.CreatePassword] error create password, error : %w", err)
+	}
+
+	return nil
 }
 
 func (u *UserRepository) GetUserByEmail(email string) (user *models.User, err error) {
