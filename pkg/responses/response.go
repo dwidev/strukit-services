@@ -12,20 +12,20 @@ type DataResponse struct {
 	Data       any `json:"data"`
 }
 
-func New(StatusCode int, Message any) *MessageResponse {
-	return &MessageResponse{
+func New(StatusCode int, Message any) MessageResponse {
+	return MessageResponse{
 		StatusCode: StatusCode,
 		Message:    Message,
 	}
 }
 
-func Created(resource ...string) *MessageResponse {
+func Created(resource ...string) MessageResponse {
 	msg := "Resource has been successfully created"
 	if len(resource) > 0 {
 		msg = fmt.Sprintf("%s has been successfully created", resource[0])
 	}
 
-	return &MessageResponse{
+	return MessageResponse{
 		StatusCode: http.StatusCreated,
 		Message:    msg,
 	}
