@@ -8,6 +8,7 @@ import (
 	"strukit-services/pkg/config"
 	"strukit-services/pkg/db"
 	"strukit-services/pkg/llm"
+	"strukit-services/pkg/report"
 	"strukit-services/pkg/token"
 	"strukit-services/pkg/validator"
 
@@ -21,6 +22,7 @@ type BootstrapConfig struct {
 func Bootstrap(cfg *BootstrapConfig) func() {
 	db := db.Open()
 
+	report := report.Manager()
 	token := token.NewManager(config.Env.JWT_ACCESS_SECRET, config.Env.JWT_REFRESH_SECRET)
 	appValidator := validator.Run()
 	llm := llm.Run()
@@ -41,14 +43,16 @@ func Bootstrap(cfg *BootstrapConfig) func() {
 	duplicateDetectionService := services.NewDuplicateDetectionService(receiptRepo)
 	receiptService := services.NewReceipt(llm, receiptRepo, projectRepo, duplicateDetectionService)
 	budgetService := services.NewBudget(budgetRepo)
+	reportService := services.NewReport(receiptRepo, projectRepo, report)
 
 	// HANDLER
 	authHandler := http.NewAuth(baseHandler, authService)
 	projectHandler := http.NewProject(baseHandler, projectService, budgetService)
 	receiptHandler := http.NewReceipt(receiptService)
+	reportsHandler := http.NewReport(baseHandler, reportService)
 
 	// ROUTE HANDLER
-	routerHandler := router.NewHandler(authHandler, projectHandler, receiptHandler)
+	routerHandler := router.NewHandler(authHandler, projectHandler, receiptHandler, reportsHandler)
 
 	// run router
 	router.Run(cfg.RouterEngine, token, routerHandler)

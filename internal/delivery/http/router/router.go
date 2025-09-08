@@ -97,10 +97,6 @@ func (a *appRouter) protectedRoutes() {
 	report := a.V1.Group("/report")
 	{
 
-		report.POST("/download/:project-id", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "download  list",
-			})
-		})
+		report.POST("/download/excel/:project-id", a.handler.reports.DownloadExcelFile)
 	}
 }
