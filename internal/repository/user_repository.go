@@ -22,7 +22,7 @@ type UserRepository struct {
 
 func (u *UserRepository) UpdatePasswordByUserID(ctx context.Context, password string) (err error) {
 	uId := u.UserID(ctx)
-	res := u.db.Update("password_hash", password).Where("id = ?", uId)
+	res := u.db.Model(&models.User{}).Where("id = ?", uId).Update("password_hash", password)
 	if err = res.Error; err != nil {
 		return fmt.Errorf("[UserRepository.CreatePassword] error create password, error : %w", err)
 	}

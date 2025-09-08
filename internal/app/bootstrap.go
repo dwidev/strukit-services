@@ -43,7 +43,7 @@ func Bootstrap(cfg *BootstrapConfig) func() {
 	budgetService := services.NewBudget(budgetRepo)
 
 	// HANDLER
-	authHandler := http.NewAuth(authService)
+	authHandler := http.NewAuth(baseHandler, authService)
 	projectHandler := http.NewProject(baseHandler, projectService, budgetService)
 	receiptHandler := http.NewReceipt(receiptService)
 

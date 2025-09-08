@@ -10,14 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewAuth(authService *services.AuthService) *AuthHandler {
+func NewAuth(base *BaseHandler, authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{
+		BaseHandler: base,
 		AuthService: authService,
 	}
 }
 
 type AuthHandler struct {
-	BaseHandler
+	*BaseHandler
 	*services.AuthService
 }
 
@@ -42,7 +43,7 @@ func (a AuthHandler) CreatePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, responses.Created())
+	c.JSON(http.StatusCreated, responses.Created("Password"))
 }
 
 func (a AuthHandler) LoginWithEmail(c *gin.Context) {
